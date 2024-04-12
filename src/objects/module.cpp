@@ -1,0 +1,88 @@
+#include "module.h"
+
+uint16_t Module::cv_to_hz(uint16_t cv) {
+    return cv;
+}
+
+void Module::update_mode() {
+    bool val1 = (mux.read(mux_assignments[SW_1_IDX]) > 511)? true : false;
+    bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
+    if (val1 && !val2) {
+        mode = ENV;
+    } else if (!val1 && val2) {
+        mode = VCO;
+    } else {
+        mode = LFO;
+    }
+}
+
+// if not for ratio, its for shape
+uint16_t Module::get_pot_cv_val(bool for_rat) {
+    uint8_t pot_idx, cv_idx;
+    if (for_rat) {
+        pot_idx = mux_assignments[R_PT_IDX];
+        cv_idx = mux_assignments[R_CV_IDX];
+    } else {
+        pot_idx = mux_assignments[S_PT_IDX];
+        cv_idx = mux_assignments[S_CV_IDX];
+    }
+    int16_t pot_val = mux.read(pot_idx);
+    int16_t cv_val = mux.read(cv_idx) - 511;
+    if (for_rat) {
+        rat_read.update(CLIP(1023 - pot_val + cv_val, 0, 1023));
+        return rat_read.getValue();
+    } else {
+        shp_read.update(CLIP(1023 - pot_val + cv_val, 0, 1023));
+        return shp_read.getValue();
+    }
+}
+
+
+uint16_t A_mux_assignments[] = {R_CV_A, R_POT_A, S_CV_A, S_POT_A, M_CV_A, SW_1_A, SW_2_A, EXP_CV_A};
+uint16_t B_mux_assignments[] = {R_CV_B, R_POT_B, S_CV_B, S_POT_B, M_CV_B, SW_1_B, SW_2_B, EXP_CV_B};
+
+Module::Module(int time_pin, int mux_pin, bool is_A): 
+    mode(VCO),
+    mux(admux::Pin(mux_pin, INPUT, admux::PinType::Analog), admux::Pinset(MUX_S0, MUX_S1, MUX_S2)),
+    lin_time_pin(time_pin),
+    rat_read(0, true),
+    shp_read(0, true),
+    time_read(0, true),
+    algo_read(0, true) {
+    mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
+}
+
+void Module::read_inputs() {
+    /*
+    have to read: 
+    - mode (switch 1 and 2)
+    - ratio value (ratio cv and ratio pot)
+    - shape value (shape cv and shape pot)
+    - time value (time pot + v/o, fm in)
+    - algorithm offset
+
+    update the parameters based on these values
+    - mode -> mode
+    - ratio value -> ratio, upslope, downslope
+    - shape value -> shape
+    - time value -> phasor
+    */
+    update_mode();
+
+    ratio = get_pot_cv_val(true);
+    if (rat_read.hasChanged()) {
+        upslope = calc_upslope(ratio);
+        downslope = calc_downslope(ratio);
+    }
+
+    shape = get_pot_cv_val(false);
+}
+
+void Module::update() {
+    acc += pha;
+    shifted_acc = acc >> 22;  // range is 0-1023
+}
+
+uint16_t Module::generate() {
+    return waveform_generator(shifted_acc, shape, ratio, upslope, downslope);
+}
