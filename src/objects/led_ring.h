@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <EncoderButton.h>
+#include <Encoder.h>
+#include <OneButton.h>
 #include <Adafruit_NeoPixel_ZeroDMA.h>
 
 #include "../hardware/pins.h"
@@ -12,18 +13,21 @@
 
 class LedRing {
     int64_t a_pos_raw, b_pos_raw;
+    int64_t enc_pos, new_enc_pos;
+    int64_t enc_change;
+    int16_t a_idx, b_idx;
+    Encoder enc;
+    OneButton btn;
     public:
-        int16_t a_idx, b_idx;
         bool a_is_active;
-        int16_t enc_change;
         void write_leds(Adafruit_NeoPixel_ZeroDMA &leds);
+        void begin();
         void update();
-        LedRing() = default;
+        LedRing(int enc_pin_1, int enc_ping_2, int btn_pin);
+
 };
 
-void setup_handlers(EncoderButton &btn, LedRing &ring);
-void encoder_handler(EncoderButton &btn);
-void button_handler(EncoderButton &btn);
+void button_handler();
 
 extern LedRing* _LEDRING;
 

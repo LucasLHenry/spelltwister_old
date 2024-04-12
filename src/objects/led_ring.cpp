@@ -1,5 +1,10 @@
 #include "led_ring.h"
 
+LedRing::LedRing(int enc_pin_1, int enc_pin_2, int btn_pin):
+    enc(enc_pin_1, enc_pin_2),
+    btn(btn_pin, true, true) 
+{}
+
 void LedRing::write_leds(Adafruit_NeoPixel_ZeroDMA &leds) {
     if (a_idx == b_idx) {
         for (int i = 0; i < NUM_RING_LEDS; i++) {
@@ -15,31 +20,26 @@ void LedRing::write_leds(Adafruit_NeoPixel_ZeroDMA &leds) {
     }
 }
 
+void LedRing::begin() {
+    btn.attachClick(button_handler);
+}
+
 void LedRing::update() {
-    if (enc_change == 0) return;
+    btn.tick();
+    new_enc_pos = enc.read();
+    enc_change = new_enc_pos - enc_pos;
+    enc_pos = new_enc_pos;
     if (a_is_active) {
-        a_idx += enc_change;
-        a_idx %= NUM_RING_LEDS;
+        a_pos_raw += enc_change;
+        a_idx = (a_pos_raw >> ENC_DIV) % NUM_RING_LEDS;
         if (a_idx < 0) a_idx += 16;
     } else {
-        b_idx += enc_change;
-        b_idx %= NUM_RING_LEDS;
+        b_pos_raw += enc_change;
+        b_idx = (b_pos_raw >> ENC_DIV) % NUM_RING_LEDS;
         if (b_idx < 0) b_idx += 16;
     }
-    enc_change = 0;
 }
 
-void encoder_handler(EncoderButton &btn) {
-    _LEDRING->enc_change = btn.increment();
-    Serial.println(_LEDRING->enc_change);
-}
-
-void button_handler(EncoderButton &btn) {
+void button_handler() {
     _LEDRING->a_is_active = !_LEDRING->a_is_active;
-}
-
-
-void setup_handlers(EncoderButton &btn, LedRing &ring) {
-    btn.setEncoderHandler(encoder_handler);
-    btn.setClickHandler(button_handler);
 }

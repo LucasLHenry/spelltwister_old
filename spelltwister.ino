@@ -11,8 +11,7 @@
 
 // GLOBAL VARIABLES
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_DATA, NEO_GRB);
-EncoderButton enc(ALGO_ENC_1, ALGO_ENC_2, ALGO_BTN);
-LedRing ring; // default constructor
+LedRing ring(ALGO_ENC_1, ALGO_ENC_2, ALGO_BTN); // default constructor
 LedRing* _LEDRING = &ring;
 // Encoder enc(ALGO_ENC_1, ALGO_ENC_2);
 // long int enc_a_pos, enc_b_pos;
@@ -32,13 +31,12 @@ LedRing* _LEDRING = &ring;
 
 void setup() {
     leds.begin();
-    setup_handlers(enc, ring);  // connects the handlers from enc to the methods within ring
+    ring.begin();
     // setup_timers();
     Serial.begin(9600);
 }
 
 void loop() {
-    enc.update();
     ring.update();
     ring.write_leds(leds);
     leds.show();
