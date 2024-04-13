@@ -11,7 +11,6 @@
 enum Mode {VCO, LFO, ENV};
 
 class Module {
-    uint16_t shifted_acc;
     uint32_t prev_shifted_acc;
     Mode mode;
     int lin_time_pin, mux_pin;
@@ -23,6 +22,7 @@ class Module {
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
     public:
+        uint16_t shifted_acc;
         uint32_t acc, pha;
         uint16_t upslope, downslope;
         uint16_t ratio, shape;

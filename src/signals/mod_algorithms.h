@@ -1,9 +1,9 @@
-#include <mainrduino.h>
+#include <Arduino.h>
 #include "../objects/module.h"
 #include "generator.h"
 
-#ifndef MODULATION_mainLGORITHMS_H
-#define MODULATION_mainLGORITHMS_H
+#ifndef MODULATION_ALGORITHMS_H
+#define MODULATION_ALGORITHMS_H
 
 typedef uint16_t (*algo_f_ptr)(Module* main, Module* aux);
 
