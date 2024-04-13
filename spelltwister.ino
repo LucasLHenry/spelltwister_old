@@ -1,5 +1,4 @@
 #include <Arduino.h>
-// #include <Mux.h>
 #include <Adafruit_NeoPixel_ZeroDMA.h>
 
 #include "src/hardware/register_functions.h"
@@ -16,18 +15,27 @@ Module B(LIN_TIME_B, MUX_B, false);
 LedRing* _LEDRING = &ring; // used for internal ISR stuff
 
 #define HZPHASOR 91183 //phasor value for 1 hz.
-uint32_t acc, phasor;
 
-uint16_t upslope = calc_upslope(128);
-uint16_t downslope = calc_downslope(128);
+void A_sync_ISR() {
+    A.acc = 0;
+    A.running = true;
+}
+
+void B_sync_ISR() {
+    B.acc = 0;
+    B.running = true;
+}
 
 void setup() {
     leds.begin();
     ring.begin();
     setup_timers();
     B.pha = 100*HZPHASOR;
+    A.pha = 75*HZPHASOR;
+    attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);
+    attachInterrupt(digitalPinToInterrupt(SIG_IN_B), B_sync_ISR, FALLING);
 }
-uint16_t val;
+
 void loop() {
     A.read_inputs();
     B.read_inputs();
@@ -38,9 +46,10 @@ void loop() {
 
 void TCC0_Handler() {
     if (TCC0->INTFLAG.bit.CNT == 1) {
-        // A.update();
+        A.update();
         B.update();
-        REG_TCC0_CCB2 = 1023 - (B.generate() >> 6);
+        B_PRI_REG = 1023 - (B.generate() >> 6);
+        A_PRI_REG = 1023 - (A.generate() >> 6);
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }

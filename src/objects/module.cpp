@@ -7,12 +7,28 @@ uint16_t Module::cv_to_hz(uint16_t cv) {
 void Module::update_mode() {
     bool val1 = (mux.read(mux_assignments[SW_1_IDX]) > 511)? true : false;
     bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
-    if (val1 && !val2) {
-        mode = ENV;
-    } else if (!val1 && val2) {
-        mode = VCO;
+    if (is_A) {
+        if (val1 && !val2) {
+            mode = ENV;
+            running = false;
+        } else if (!val1 && val2) {
+            mode = VCO;
+            running = true;
+        } else {
+            mode = LFO;
+            running = true;
+        }
     } else {
-        mode = LFO;
+        if (val1 && !val2) {
+            mode = VCO;
+            running = true;
+        } else if (!val1 && val2) {
+            mode = LFO;
+            running = false;
+        } else {
+            mode = LFO;
+            running = true;
+        }
     }
 }
 
@@ -79,10 +95,13 @@ void Module::read_inputs() {
 }
 
 void Module::update() {
+    prev_shifted_acc = shifted_acc;
     acc += pha;
     shifted_acc = acc >> 22;  // range is 0-1023
 }
 
 uint16_t Module::generate() {
-    return waveform_generator(shifted_acc, shape, ratio, upslope, downslope);
+    if (mode == ENV && prev_shifted_acc > shifted_acc) running = false;
+    val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
+    return val;
 }

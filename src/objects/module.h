@@ -12,6 +12,7 @@ enum Mode {VCO, LFO, ENV};
 
 class Module {
     uint16_t shifted_acc;
+    uint32_t prev_shifted_acc;
     Mode mode;
     int lin_time_pin, mux_pin;
     bool is_A;
@@ -25,6 +26,7 @@ class Module {
     admux::Mux mux;
     public:
         uint32_t acc, pha;
+        bool running;
         Module(int time_pin, int mux_pin, bool is_A);
         void read_inputs();
         void update();

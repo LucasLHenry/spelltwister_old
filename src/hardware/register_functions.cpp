@@ -37,14 +37,34 @@ void setup_timers() {
     // Configure PA18 (D10 on Arduino Zero) to be output
     PORT->Group[PORTA].DIRSET.reg = PORT_PA18;      // Set pin as output
     PORT->Group[PORTA].OUTCLR.reg = PORT_PA18;      // Set pin to low
+    
+    // other ones to configure are PA19, PA04, PA05
+    PORT->Group[PORTA].DIRSET.reg = PORT_PA19;
+    PORT->Group[PORTA].OUTCLR.reg = PORT_PA19;
+    PORT->Group[PORTA].DIRSET.reg = PORT_PA04;
+    PORT->Group[PORTA].OUTCLR.reg = PORT_PA04;
+    PORT->Group[PORTA].DIRSET.reg = PORT_PA05;
+    PORT->Group[PORTA].OUTCLR.reg = PORT_PA05;
 
-    // Enable the port multiplexer for PA18
+    // Enable the port multiplexer
     PORT->Group[PORTA].PINCFG[18].reg |= PORT_PINCFG_PMUXEN;
+    PORT->Group[PORTA].PINCFG[19].reg |= PORT_PINCFG_PMUXEN;
+    PORT->Group[PORTA].PINCFG[04].reg |= PORT_PINCFG_PMUXEN;
+    PORT->Group[PORTA].PINCFG[05].reg |= PORT_PINCFG_PMUXEN;
 
     // Connect TCC0 timer to PA18. Function F is TCC0/WO[2] for PA18.
     // Odd pin num (2*n + 1): use PMUXO
     // Even pin num (2*n): use PMUXE
-    PORT->Group[PORTA].PMUX[9].reg = PORT_PMUX_PMUXE_F;
+    // PORT->Group[PORTA].PMUX[9].reg = PORT_PMUX_PMUXE_F;  // PA18
+    // PORT->Group[PORTA].PMUX[9].reg = PORT_PMUX_PMUXO_F;  // PA19
+    // PORT->Group[PORTA].PMUX[2].reg = PORT_PMUX_PMUXE_E;  // PA04
+    // PORT->Group[PORTA].PMUX[2].reg = PORT_PMUX_PMUXO_E;  // PA05
+
+
+    PORT->Group[g_APinDescription[10].ulPort].PMUX[g_APinDescription[10].ulPin >> 1].reg |= PORT_PMUX_PMUXE_F;  // D10 is on PA18 = even   WO[2]
+    PORT->Group[g_APinDescription[12].ulPort].PMUX[g_APinDescription[12].ulPin >> 1].reg |= PORT_PMUX_PMUXO_F; // D12 is on PA19 = odd  WO[3]
+    PORT->Group[g_APinDescription[A3].ulPort].PMUX[g_APinDescription[A3].ulPin >> 1].reg |= PORT_PMUX_PMUXE_E;  // A3 is on PA04 = even WO[0]
+    PORT->Group[g_APinDescription[A4].ulPort].PMUX[g_APinDescription[A4].ulPin >> 1].reg |= PORT_PMUX_PMUXO_E; // A4 is on PA05 = odd WO[1]
 
 
     TCC0->INTENSET.reg = 0;
