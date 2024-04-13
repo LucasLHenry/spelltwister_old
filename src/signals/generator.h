@@ -6,9 +6,10 @@
 #ifndef GENERATOR_FUNC_H
 #define GENERATOR_FUNC_H
 
-#define MAX_X 1023
-#define MAX_Y 65535
+#define MAX_X  1023
+#define MAX_Y  65535
 #define HALF_X 511
+#define HALF_Y 32767
 
 #define MAX(a, b) (((a) > (b))? (a) : (b))
 #define MIN(a, b) (((a) < (b))? (a) : (b))

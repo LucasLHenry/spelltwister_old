@@ -3,7 +3,7 @@
 #include <ResponsiveAnalogRead.h>
 
 #include "../hardware/pins.h"
-#include "../misc/generator.h"
+#include "../signals/generator.h"
 
 #ifndef MODULE_CLASS_H
 #define MODULE_CLASS_H
@@ -16,9 +16,7 @@ class Module {
     Mode mode;
     int lin_time_pin, mux_pin;
     bool is_A;
-    uint16_t ratio, shape;
     uint16_t* mux_assignments;
-    uint16_t upslope, downslope;
     uint16_t cv_to_hz(uint16_t cv);
     void update_mode();
     uint16_t get_pot_cv_val(bool for_rat);
@@ -26,6 +24,8 @@ class Module {
     admux::Mux mux;
     public:
         uint32_t acc, pha;
+        uint16_t upslope, downslope;
+        uint16_t ratio, shape;
         bool running;
         Module(int time_pin, int mux_pin, bool is_A);
         void read_inputs();

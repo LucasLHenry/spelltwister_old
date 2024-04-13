@@ -4,7 +4,7 @@
 #include "src/hardware/register_functions.h"
 #include "src/hardware/pins.h"
 #include "src/objects/led_ring.h"
-#include "src/misc/generator.h"
+#include "src/signals/generator.h"
 #include "src/objects/module.h"
 
 // GLOBAL VARIABLES
@@ -48,8 +48,8 @@ void TCC0_Handler() {
     if (TCC0->INTFLAG.bit.CNT == 1) {
         A.update();
         B.update();
-        B_PRI_REG = 1023 - (B.generate() >> 6);
         A_PRI_REG = 1023 - (A.generate() >> 6);
+        B_PRI_REG = 1023 - (B.generate() >> 6);
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }

@@ -103,5 +103,6 @@ void Module::update() {
 uint16_t Module::generate() {
     if (mode == ENV && prev_shifted_acc > shifted_acc) running = false;
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
+    if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
     return val;
 }
