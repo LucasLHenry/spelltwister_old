@@ -6,6 +6,27 @@
 #include "src/objects/led_ring.h"
 #include "src/signals/generator.h"
 #include "src/objects/module.h"
+#include "src/signals/mod_algorithms.h"
+
+// ALGORITHMS ON RING
+algo_f_ptr algo_arr[16] = {
+    rectify,
+    half_freq,
+    double_freq,
+    invert,
+    exculsive_or,
+    difference,
+    sum,
+    frequency_mod,
+    amplitude_mod,
+    gate,
+    shape_mod,
+    ratio_mod,
+    wavefold,
+    sample_rate_reduce,
+    noisify,
+    bitcrush
+};
 
 // GLOBAL VARIABLES
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_DATA, NEO_GRB);
@@ -49,6 +70,8 @@ void TCC0_Handler() {
         B.update();
         A_PRI_REG = 1023 - (A.generate() >> 6);
         B_PRI_REG = 1023 - (B.generate() >> 6);
+        A_SEC_REG = 1023 - (algo_arr[ring.a_idx](A, B) >> 6);
+        B_SEC_REG = 1023 - (algo_arr[ring.b_idx](B, A) >> 6);
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }

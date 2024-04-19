@@ -2,9 +2,7 @@
 
 uint32_t Module::get_phasor() {
     time_read.update(mux.read(mux_assignments[VO_IDX]));
-    uint32_t new_pha = pgm_read_dword_near(phasor_table + time_read.getValue());
-    if (is_A) Serial.println(new_pha);
-    return new_pha;
+    return pgm_read_dword_near(phasor_table + time_read.getValue());
 }
 
 void Module::update_mode() {

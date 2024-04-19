@@ -16,10 +16,10 @@ class LedRing {
     int64_t a_pos_raw, b_pos_raw;
     int64_t enc_pos, new_enc_pos;
     int64_t enc_change;
-    int16_t a_idx, b_idx;
     Encoder enc;
     OneButton btn;
     public:
+        int16_t a_idx, b_idx;
         bool a_is_active;
         void write_leds(Adafruit_NeoPixel_ZeroDMA &leds);
         void begin();
