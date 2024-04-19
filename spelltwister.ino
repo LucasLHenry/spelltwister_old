@@ -41,7 +41,6 @@ void loop() {
     ring.update();
     ring.write_leds(leds);
     leds.show();
-    Serial.println("test");
 }
 
 void TCC0_Handler() {
