@@ -14,8 +14,6 @@ Module A(LIN_TIME_A, MUX_A, true);
 Module B(LIN_TIME_B, MUX_B, false);
 LedRing* _LEDRING = &ring; // used for internal ISR stuff
 
-#define HZPHASOR 91183 //phasor value for 1 hz.
-
 void A_sync_ISR() {
     A.acc = 0;
     A.running = true;
@@ -27,11 +25,12 @@ void B_sync_ISR() {
 }
 
 void setup() {
+    Serial.begin(9600);
     leds.begin();
     ring.begin();
     setup_timers();
-    B.pha = 100*HZPHASOR;
-    A.pha = 75*HZPHASOR;
+    // B.pha = 100*HZPHASOR;
+    // A.pha = 75*HZPHASOR;
     attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_B), B_sync_ISR, FALLING);
 }
@@ -42,6 +41,7 @@ void loop() {
     ring.update();
     ring.write_leds(leds);
     leds.show();
+    Serial.println("test");
 }
 
 void TCC0_Handler() {

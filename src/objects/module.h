@@ -1,12 +1,16 @@
 #include <Arduino.h>
 #include <Mux.h>
 #include <ResponsiveAnalogRead.h>
+#include <avr/pgmspace.h>
 
 #include "../hardware/pins.h"
 #include "../signals/generator.h"
+#include "../tables/phasors.h"
 
 #ifndef MODULE_CLASS_H
 #define MODULE_CLASS_H
+
+#define HZPHASOR 91183 //phasor value for 1 hz.
 
 enum Mode {VCO, LFO, ENV};
 
@@ -16,7 +20,7 @@ class Module {
     int lin_time_pin, mux_pin;
     bool is_A;
     uint16_t* mux_assignments;
-    uint16_t cv_to_hz(uint16_t cv);
+    uint32_t get_phasor();
     void update_mode();
     uint16_t get_pot_cv_val(bool for_rat);
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
@@ -43,6 +47,6 @@ class Module {
 #define A_CV_IDX 4
 #define SW_1_IDX 5
 #define SW_2_IDX 6
-#define FM___IDX 7
+#define VO_IDX   7
 
 #endif

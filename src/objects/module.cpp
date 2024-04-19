@@ -1,7 +1,8 @@
 #include "module.h"
 
-uint16_t Module::cv_to_hz(uint16_t cv) {
-    return cv;
+uint32_t Module::get_phasor() {
+    time_read.update(mux.read(mux_assignments[VO_IDX]));
+    return pgm_read_word_near(phasor_table + time_read.getValue());
 }
 
 void Module::update_mode() {
@@ -23,7 +24,7 @@ void Module::update_mode() {
             mode = VCO;
             running = true;
         } else if (!val1 && val2) {
-            mode = LFO;
+            mode = ENV;
             running = false;
         } else {
             mode = LFO;
@@ -57,14 +58,15 @@ uint16_t Module::get_pot_cv_val(bool for_rat) {
 uint16_t A_mux_assignments[] = {R_CV_A, R_POT_A, S_CV_A, S_POT_A, M_CV_A, SW_1_A, SW_2_A, EXP_CV_A};
 uint16_t B_mux_assignments[] = {R_CV_B, R_POT_B, S_CV_B, S_POT_B, M_CV_B, SW_1_B, SW_2_B, EXP_CV_B};
 
-Module::Module(int time_pin, int mux_pin, bool is_A): 
+Module::Module(int time_pin, int mux_pin, bool _is_A): 
     mode(VCO),
     mux(admux::Pin(mux_pin, INPUT, admux::PinType::Analog), admux::Pinset(MUX_S0, MUX_S1, MUX_S2)),
     lin_time_pin(time_pin),
     rat_read(0, true),
     shp_read(0, true),
     time_read(0, true),
-    algo_read(0, true) {
+    algo_read(0, true),
+    is_A(_is_A) {
     mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
 }
 
@@ -92,6 +94,8 @@ void Module::read_inputs() {
     }
 
     shape = get_pot_cv_val(false);
+
+    pha = get_phasor() << 4;
 }
 
 void Module::update() {
@@ -103,6 +107,6 @@ void Module::update() {
 uint16_t Module::generate() {
     if (mode == ENV && prev_shifted_acc > shifted_acc) running = false;
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
-    if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
+    // if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
     return val;
 }
