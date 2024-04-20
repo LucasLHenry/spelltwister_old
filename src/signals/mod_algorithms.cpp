@@ -9,9 +9,9 @@ uint16_t difference(Module& main, Module& aux) {
 }
 
 uint16_t exculsive_or(Module& main, Module& aux) {
-    uint16_t top_half = main.val & 0xFF00;
-    uint16_t bottom_half = (main.val & 0x00FF) ^ (aux.val & 0x00FF);
-    return top_half | bottom_half;
+    uint16_t top = main.val & 0xF000;
+    uint16_t bottom = (main.val & 0x0FFF) ^ (aux.val & 0x0FFF);
+    return top | bottom;
 }
 
 uint16_t invert(Module& main, Module& aux) {
@@ -28,22 +28,26 @@ uint16_t half_freq(Module& main, Module& aux) {
 }
 
 uint16_t rectify(Module& main, Module& aux) {
-    if (main.val < HALF_Y) return MAX_Y - main.val;
-    return main.val;
+    uint32_t val = (main.val < HALF_Y)? MAX_Y - main.val : main.val;
+    return (uint16_t)((val << 1) - MAX_Y);
 }
 
 uint16_t bitcrush(Module& main, Module& aux) {
-    #define CRUSH_AMT 11
+    #define CRUSH_AMT 13
     return (main.val >> CRUSH_AMT) << CRUSH_AMT;
     #undef CRUSH_AMT
 }
 
 uint16_t noisify(Module& main, Module& aux) {
-    return 0;
+    #define RAND_AMT 4096
+    constexpr int16_t half_rand = RAND_AMT / 2;
+    return CLIP((int16_t)main.val + random(RAND_AMT) - half_rand, 0, MAX_Y);
 }
 
 uint16_t sample_rate_reduce(Module& main, Module& aux) {
-    return 0;
+    #define SRR_AMT 1
+    return waveform_generator((main.shifted_acc >> SRR_AMT) << SRR_AMT, main.shape, main.ratio, main.upslope, main.downslope);
+    #undef SRR_AMT
 }
 
 uint16_t wavefold(Module& main, Module& aux) {

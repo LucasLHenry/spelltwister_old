@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 #include "../tables/exptable.h"
+#include "../tables/logtable.h"
 
 
 #ifndef GENERATOR_FUNC_H

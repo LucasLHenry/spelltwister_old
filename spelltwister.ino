@@ -50,8 +50,7 @@ void setup() {
     leds.begin();
     ring.begin();
     setup_timers();
-    // B.pha = 100*HZPHASOR;
-    // A.pha = 75*HZPHASOR;
+    randomSeed(0xBADF00D);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_B), B_sync_ISR, FALLING);
 }

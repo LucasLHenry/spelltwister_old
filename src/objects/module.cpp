@@ -1,7 +1,9 @@
 #include "module.h"
 
 uint32_t Module::get_phasor() {
-    time_read.update(mux.read(mux_assignments[VO_IDX]));
+    #define PITCH_IDX_OFFSET 410
+    uint16_t val = mux.read(mux_assignments[VO_IDX]);
+    time_read.update(MAX(val - PITCH_IDX_OFFSET, 0));
     return pgm_read_dword_near(phasor_table + time_read.getValue());
 }
 
@@ -95,7 +97,7 @@ void Module::read_inputs() {
 
     shape = get_pot_cv_val(false);
 
-    pha = get_phasor() << 4;
+    pha = get_phasor();
 }
 
 void Module::update() {
