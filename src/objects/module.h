@@ -38,6 +38,7 @@ class Module {
         uint16_t val;
         uint16_t algo_offset;
         void print_mode();
+        uint16_t vo_offset, vo_scale;
 };
 
 // order for mux_assignemnts is ratio cv, ratio pot, shape cv, shape pot, algo cv, switch 1, switch 2, exp time cv

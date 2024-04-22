@@ -7,6 +7,7 @@
 #include "src/signals/generator.h"
 #include "src/objects/module.h"
 #include "src/signals/mod_algorithms.h"
+#include "src/hardware/config.h"
 
 // ALGORITHMS ON RING
 algo_f_ptr algo_arr[16] = {
@@ -40,6 +41,7 @@ uint64_t global_count = 0;
 const uint64_t loops_per_sec = 535;
 uint64_t runtime_s = 0;
 
+
 void A_sync_ISR() {
     A.acc = 0;
     A.running = true;
@@ -55,9 +57,9 @@ void setup() {
     leds.begin();
     ring.begin();
     setup_timers();
-    randomSeed(0xBADF00D);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_B), B_sync_ISR, FALLING);
+    update_values_from_config(ring, A, B);
 }
 
 void loop() {
@@ -68,6 +70,7 @@ void loop() {
     ring.update();
     ring.write_leds(leds);
     leds.show();
+    if (runtime_s % CONFIG_WRITE_PERIOD_S == 0) write_encoder_to_config(ring);
 
     global_count++;
     if (global_count > loops_per_sec) {

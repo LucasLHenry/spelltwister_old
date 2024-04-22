@@ -38,10 +38,14 @@ uint16_t bitcrush(Module& main, Module& aux) {
     #undef CRUSH_AMT
 }
 
+
+// DEEMED NOT VERY INTERESTING, SO WON'T GET INCLUDED IN FINAL RELEASE.
+// also, `random` is a huge performance hit.
 uint16_t noisify(Module& main, Module& aux) {
-    #define RAND_AMT 4096
-    constexpr int16_t half_rand = RAND_AMT / 2;
-    return CLIP((int16_t)main.val + random(RAND_AMT) - half_rand, 0, MAX_Y);
+    // #define RAND_AMT 4096
+    // constexpr int16_t half_rand = RAND_AMT / 2;
+    // return CLIP((int16_t)main.val + random(RAND_AMT) - half_rand, 0, MAX_Y);
+    return main.val;
 }
 
 uint16_t sample_rate_reduce(Module& main, Module& aux) {
