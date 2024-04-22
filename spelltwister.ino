@@ -35,6 +35,11 @@ Module A(LIN_TIME_A, MUX_A, true);
 Module B(LIN_TIME_B, MUX_B, false);
 LedRing* _LEDRING = &ring; // used for internal ISR stuff
 
+uint64_t global_count = 0;
+// this will change as more code is added to loop, not fully accurate
+const uint64_t loops_per_sec = 535;
+uint64_t runtime_s = 0;
+
 void A_sync_ISR() {
     A.acc = 0;
     A.running = true;
@@ -56,11 +61,19 @@ void setup() {
 }
 
 void loop() {
+    //digitalWrite(TRIG_OUT_A, HIGH);   to test loop speed
     A.read_inputs();
+    //digitalWrite(TRIG_OUT_A, LOW);
     B.read_inputs();
     ring.update();
     ring.write_leds(leds);
     leds.show();
+
+    global_count++;
+    if (global_count > loops_per_sec) {
+        global_count = 0;
+        runtime_s++;
+    }
 }
 
 void TCC0_Handler() {

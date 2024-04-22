@@ -1,7 +1,7 @@
 #include "module.h"
 
 uint32_t Module::get_phasor() {
-    #define PITCH_IDX_OFFSET 410
+    #define PITCH_IDX_OFFSET 155
     uint16_t val = mux.read(mux_assignments[VO_IDX]);
     time_read.update(MAX(val - PITCH_IDX_OFFSET, 0));
     return pgm_read_dword_near(phasor_table + time_read.getValue());
@@ -111,4 +111,10 @@ uint16_t Module::generate() {
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
     // if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
     return val;
+}
+
+void Module::print_mode() {
+    if (mode == ENV) Serial.println("ENV");
+    else if (mode == VCO) Serial.println("VCO");
+    else Serial.println("LFO");
 }
