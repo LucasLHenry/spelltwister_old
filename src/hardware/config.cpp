@@ -1,4 +1,16 @@
+#include <FlashAsEEPROM_SAMD.h>  // 
+
 #include "config.h"
+
+FlashStorage(encoder_flag_storage, char);
+FlashStorage(a_idx_storage, int);
+FlashStorage(b_idx_storage, int);
+
+FlashStorage(calibration_flag_storage, char);
+FlashStorage(a_vo_offset_storage, int);
+FlashStorage(b_vo_offset_storage, int);
+FlashStorage(a_vo_scale_storage, int);
+FlashStorage(b_vo_scale_storage, int);
 
 void update_values_from_config(LedRing& ring, Module& A, Module& B) {
     char c_buf;
@@ -36,14 +48,14 @@ void update_values_from_config(LedRing& ring, Module& A, Module& B) {
         B.vo_scale = (uint16_t)buf;
     } else {
         // DEFAULT VALUES
-        A.vo_offset = 150;
+        A.vo_offset = 155;
         A.vo_scale  = 1;
-        B.vo_offset = 155;
+        B.vo_offset = 148;
         B.vo_scale  = 1;
     }
 }
 
-void write_encoder_to_config(const LedRing& ring) {
+void write_encoder_to_config(LedRing& ring) {
     int buf;
     int out_buf;
     char c_buf;
@@ -65,7 +77,7 @@ void write_encoder_to_config(const LedRing& ring) {
     if (c_buf != config_exists_flag) encoder_flag_storage.write(config_exists_flag);
 }
 
-void write_calibration_to_config(const Module& A, const Module& B) {
+void write_calibration_to_config(Module& A, Module& B) {
     int buf;
     int out_buf;
     char c_buf;

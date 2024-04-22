@@ -38,7 +38,7 @@ LedRing* _LEDRING = &ring; // used for internal ISR stuff
 
 uint64_t global_count = 0;
 // this will change as more code is added to loop, not fully accurate
-const uint64_t loops_per_sec = 535;
+const uint64_t loops_per_sec = 460;
 uint64_t runtime_s = 0;
 
 
@@ -63,9 +63,9 @@ void setup() {
 }
 
 void loop() {
-    //digitalWrite(TRIG_OUT_A, HIGH);   to test loop speed
+    // digitalWrite(TRIG_OUT_A, HIGH);   // to test loop speed
     A.read_inputs();
-    //digitalWrite(TRIG_OUT_A, LOW);
+    // digitalWrite(TRIG_OUT_A, LOW);
     B.read_inputs();
     ring.update();
     ring.write_leds(leds);
