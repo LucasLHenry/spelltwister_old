@@ -29,7 +29,7 @@ uint16_t half_freq(Module& main, Module& aux) {
 
 uint16_t rectify(Module& main, Module& aux) {
     uint32_t val = (main.val < HALF_Y)? MAX_Y - main.val : main.val;
-    return (uint16_t)((val << 1) - MAX_Y);
+    return static_cast<uint16_t>((val << 1) - MAX_Y);
 }
 
 uint16_t bitcrush(Module& main, Module& aux) {
@@ -73,7 +73,7 @@ uint16_t gate(Module& main, Module& aux) {
 }
 
 uint16_t amplitude_mod(Module& main, Module& aux) {
-    return (uint16_t)((main.val * (uint64_t)aux.val) >> 16);
+    return static_cast<uint16_t>((main.val * static_cast<uint64_t>(aux.val)) >> 16);
 }
 
 uint16_t frequency_mod(Module& main, Module& aux) {
@@ -81,5 +81,5 @@ uint16_t frequency_mod(Module& main, Module& aux) {
 }
 
 uint16_t ring_modulate(Module& main, Module& aux) {
-    return (uint16_t)((main.val * (uint64_t)aux.val) >> 16);
+    return static_cast<uint16_t>((main.val * static_cast<uint64_t>(aux.val)) >> 16);
 }

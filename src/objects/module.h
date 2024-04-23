@@ -6,6 +6,7 @@
 #include "../hardware/pins.h"
 #include "../signals/generator.h"
 #include "../tables/phasors.h"
+#include "../tables/slow_phasors.h"
 
 #ifndef MODULE_CLASS_H
 #define MODULE_CLASS_H

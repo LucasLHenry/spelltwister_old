@@ -1,9 +1,22 @@
 #include "module.h"
 
 uint32_t Module::get_phasor() {
+    #define MIN_LFO_ENV_CYCLE_TIME_S 0.025
+    #define MAX_LFO_ENV_CYCLE_TIME_S 10.0
+    constexpr uint32_t min_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MAX_LFO_ENV_CYCLE_TIME_S);
+    constexpr uint32_t max_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MIN_LFO_ENV_CYCLE_TIME_S);
+
     uint16_t val = mux.read(mux_assignments[VO_IDX]);
-    time_read.update(MAX(val - vo_offset, 0));
-    return pgm_read_dword_near(phasor_table + time_read.getValue());
+    uint16_t processed_val = MAX(time_read.getValue() - vo_offset, 0);
+    time_read.update(val);
+
+    uint32_t outval;
+    if (mode == VCO) {
+        outval = pgm_read_dword_near(phasor_table + processed_val);
+    } else {
+        outval = pgm_read_dword_near(slow_phasor_table + processed_val);
+    }
+    return outval;
 }
 
 void Module::update_mode() {
@@ -11,8 +24,8 @@ void Module::update_mode() {
     bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
     if (is_A) {
         if (val1 && !val2) {
+            // if (mode != ENV) running = false;
             mode = ENV;
-            running = false;
         } else if (!val1 && val2) {
             mode = VCO;
             running = true;
@@ -25,8 +38,8 @@ void Module::update_mode() {
             mode = VCO;
             running = true;
         } else if (!val1 && val2) {
+            // if (mode != ENV) running = false;
             mode = ENV;
-            running = false;
         } else {
             mode = LFO;
             running = true;

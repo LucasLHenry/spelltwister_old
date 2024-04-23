@@ -20,12 +20,12 @@ void update_values_from_config(LedRing& ring, Module& A, Module& B) {
     encoder_flag_storage.read(c_buf);
     if (c_buf == config_exists_flag) {
         a_idx_storage.read(buf);
-        ring.a_idx = (uint16_t)buf;
-        ring.a_pos_raw = (uint16_t)buf << ENC_DIV;
+        ring.a_idx = static_cast<uint16_t>(buf);
+        ring.a_pos_raw = static_cast<uint16_t>(buf) << ENC_DIV;
 
         b_idx_storage.read(buf);
-        ring.b_idx = (uint16_t)buf;
-        ring.b_pos_raw = (uint16_t)buf << ENC_DIV;
+        ring.b_idx = static_cast<uint16_t>(buf);
+        ring.b_pos_raw = static_cast<uint16_t>(buf) << ENC_DIV;
     } else {
         // DEFAULT VALUES
         ring.a_idx = 0;
@@ -38,14 +38,14 @@ void update_values_from_config(LedRing& ring, Module& A, Module& B) {
     calibration_flag_storage.read(c_buf);
     if (c_buf == config_exists_flag) {
         a_vo_offset_storage.read(buf);
-        A.vo_offset = (uint16_t)buf;
+        A.vo_offset = static_cast<uint16_t>(buf);
         a_vo_scale_storage.read(buf);
-        A.vo_scale = (uint16_t)buf;
+        A.vo_scale = static_cast<uint16_t>(buf);
 
         b_vo_offset_storage.read(buf);
-        B.vo_offset = (uint16_t)buf;
+        B.vo_offset = static_cast<uint16_t>(buf);
         b_vo_scale_storage.read(buf);
-        B.vo_scale = (uint16_t)buf;
+        B.vo_scale = static_cast<uint16_t>(buf);
     } else {
         // DEFAULT VALUES
         A.vo_offset = 155;
