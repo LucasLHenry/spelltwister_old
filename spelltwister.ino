@@ -8,6 +8,7 @@
 #include "src/objects/module.h"
 #include "src/signals/mod_algorithms.h"
 #include "src/hardware/config.h"
+#include "src/objects/modulator.h"
 
 // ALGORITHMS ON RING
 algo_f_ptr algo_arr[16] = {
@@ -32,9 +33,10 @@ algo_f_ptr algo_arr[16] = {
 // GLOBAL VARIABLES
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_DATA, NEO_GRB);
 LedRing ring(ALGO_ENC_1, ALGO_ENC_2, ALGO_BTN);
+LedRing* _LEDRING = &ring; // used for internal ISR stuff
 Module A(LIN_TIME_A, MUX_A, true);
 Module B(LIN_TIME_B, MUX_B, false);
-LedRing* _LEDRING = &ring; // used for internal ISR stuff
+Modulator modulator(A, B, ring, algo_arr);
 
 uint64_t global_count = 0;
 // this will change as more code is added to loop, not fully accurate
@@ -79,14 +81,16 @@ void loop() {
     }
 }
 
+
+// called at 48kHz, generates the signal samples
 void TCC0_Handler() {
     if (TCC0->INTFLAG.bit.CNT == 1) {
         A.update();
         B.update();
         A_PRI_REG = 1023 - (A.generate() >> 6);
         B_PRI_REG = 1023 - (B.generate() >> 6);
-        A_SEC_REG = 1023 - (algo_arr[ring.a_idx](A, B) >> 6);
-        B_SEC_REG = 1023 - (algo_arr[ring.b_idx](B, A) >> 6);
+        A_SEC_REG = 1023 - (modulator.generate_A() >> 6);
+        B_SEC_REG = 1023 - (modulator.generate_B() >> 6);
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }
