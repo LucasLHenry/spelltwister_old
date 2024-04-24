@@ -38,7 +38,8 @@ Module A(LIN_TIME_A, MUX_A, true);
 Module B(LIN_TIME_B, MUX_B, false);
 Modulator modulator(A, B, ring, algo_arr);
 
-uint64_t global_count = 0;
+uint64_t loop_counter = 0;
+uint64_t isr_counter = 0;
 // this will change as more code is added to loop, not fully accurate
 const uint64_t loops_per_sec = 460;
 uint64_t runtime_s = 0;
@@ -65,20 +66,28 @@ void setup() {
 }
 
 void loop() {
-    // digitalWrite(TRIG_OUT_A, HIGH);   // to test loop speed
-    A.read_inputs();
-    // digitalWrite(TRIG_OUT_A, LOW);
-    B.read_inputs();
+    // get new values from pots and CV
+    A.read_inputs_frequent();
+    B.read_inputs_frequent();
+
+    if (loop_counter % 20 == 0) {
+        A.read_inputs_infrequent();
+        B.read_inputs_infrequent();
+    }
+    
     ring.update();
     ring.write_leds(leds);
+    // write_signal_indicator_leds(leds, A, B, modulator);
     leds.show();
     if (runtime_s % CONFIG_WRITE_PERIOD_S == 0) write_encoder_to_config(ring);
 
-    global_count++;
-    if (global_count > loops_per_sec) {
-        global_count = 0;
+    loop_counter++;
+    if (loop_counter > loops_per_sec) {
+        loop_counter = 0;
         runtime_s++;
     }
+    A.end_of_cycle = false;
+    B.end_of_cycle = false;
 }
 
 
@@ -87,10 +96,20 @@ void TCC0_Handler() {
     if (TCC0->INTFLAG.bit.CNT == 1) {
         A.update();
         B.update();
+
         A_PRI_REG = 1023 - (A.generate() >> 6);
         B_PRI_REG = 1023 - (B.generate() >> 6);
         A_SEC_REG = 1023 - (modulator.generate_A() >> 6);
         B_SEC_REG = 1023 - (modulator.generate_B() >> 6);
+
+        // not is in there because of an output inverter
+        digitalWrite(TRIG_OUT_A, !A.end_of_cycle);
+        digitalWrite(TRIG_OUT_B, !B.end_of_cycle);
+
         TCC0->INTFLAG.bit.CNT = 1;
     }
+}
+
+void write_signal_indicator_leds(LedRing& leds, Module& A, Module& B, Modulator& modulator) {
+
 }

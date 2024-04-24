@@ -84,23 +84,7 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
     mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
 }
 
-void Module::read_inputs() {
-    /*
-    have to read: 
-    - mode (switch 1 and 2)
-    - ratio value (ratio cv and ratio pot)
-    - shape value (shape cv and shape pot)
-    - time value (time pot + v/o, fm in)
-    - algorithm offset
-
-    update the parameters based on these values
-    - mode -> mode
-    - ratio value -> ratio, upslope, downslope
-    - shape value -> shape
-    - time value -> phasor
-    */
-    update_mode();
-
+void Module::read_inputs_frequent() {
     ratio = get_pot_cv_val(true);
     if (rat_read.hasChanged()) {
         upslope = calc_upslope(ratio);
@@ -112,14 +96,24 @@ void Module::read_inputs() {
     pha = get_phasor();
 }
 
+void Module::read_inputs_infrequent() {
+    update_mode();
+}
+
 void Module::update() {
     prev_shifted_acc = shifted_acc;
     acc += pha;
     shifted_acc = acc >> 22;  // range is 0-1023
+    update_counter++;
 }
 
 uint16_t Module::generate() {
-    if (mode == ENV && prev_shifted_acc > shifted_acc) running = false;
+    if (prev_shifted_acc > shifted_acc) {
+        end_of_cycle = true;
+        EOS_start_time = update_counter;
+        if (mode == ENV) running = false;
+    }
+    if (update_counter == EOS_start_time + trig_length_in_updates) end_of_cycle = false;
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
     // if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
     return val;
