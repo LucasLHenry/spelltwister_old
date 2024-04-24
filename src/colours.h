@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #ifndef COLOURS_H
 #define COLOURS_H
 

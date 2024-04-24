@@ -9,6 +9,7 @@
 #include "src/signals/mod_algorithms.h"
 #include "src/hardware/config.h"
 #include "src/objects/modulator.h"
+#include "src/signals/misc_algorithms.h"
 
 // ALGORITHMS ON RING
 algo_f_ptr algo_arr[16] = {
@@ -55,6 +56,8 @@ void B_sync_ISR() {
     B.running = true;
 }
 
+void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator);
+
 void setup() {
     Serial.begin(9600);
     leds.begin();
@@ -77,7 +80,7 @@ void loop() {
     
     ring.update();
     ring.write_leds(leds);
-    // write_signal_indicator_leds(leds, A, B, modulator);
+    write_signal_indicator_leds(leds, A, B, modulator);
     leds.show();
     if (runtime_s % CONFIG_WRITE_PERIOD_S == 0) write_encoder_to_config(ring);
 
@@ -86,8 +89,6 @@ void loop() {
         loop_counter = 0;
         runtime_s++;
     }
-    A.end_of_cycle = false;
-    B.end_of_cycle = false;
 }
 
 
@@ -105,11 +106,28 @@ void TCC0_Handler() {
         // not is in there because of an output inverter
         digitalWrite(TRIG_OUT_A, !A.end_of_cycle);
         digitalWrite(TRIG_OUT_B, !B.end_of_cycle);
-
+        isr_counter++;
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }
 
-void write_signal_indicator_leds(LedRing& leds, Module& A, Module& B, Modulator& modulator) {
+void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
+    #define MAX_PERCEIVABLE_FREQUENCY_Hz 40
+    constexpr uint32_t max_phasor = MAX_PERCEIVABLE_FREQUENCY_Hz * HZPHASOR;
 
+    if (A.pha > max_phasor) {
+        leds.setPixelColor(PRI_A_LED, RED);
+        leds.setPixelColor(SEC_A_LED, RED);
+    } else {
+        leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
+        leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0);
+    }
+
+    if (B.pha > max_phasor) {
+        leds.setPixelColor(PRI_B_LED, BLUE);
+        leds.setPixelColor(SEC_B_LED, BLUE);
+    } else {
+        leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
+        leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
+    }
 }

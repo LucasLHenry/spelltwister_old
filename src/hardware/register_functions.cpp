@@ -75,3 +75,10 @@ void setup_timers() {
     NVIC_EnableIRQ(TCC0_IRQn);
     TCC0->CTRLA.reg |= TCC_CTRLA_ENABLE;
 }
+
+
+// not currently working. Don't know why
+void digitalWriteDirect(int PIN, boolean val) {
+    if(val) PORT->Group[g_APinDescription[PIN].ulPort].OUTSET.reg = (1ul << g_APinDescription[PIN].ulPin);
+    else PORT->Group[g_APinDescription[PIN].ulPort].OUTCLR.reg = (1ul << g_APinDescription[PIN].ulPin);
+}
