@@ -14,8 +14,10 @@
 #define HZPHASOR 91183 //phasor value for 1 hz.
 
 #define TRIG_LENGTH_MS 0.25
+#define TRIG_LED_LENGTH_MS 25
 // ms * 1s/1000ms * 48000 updates/s
 constexpr uint64_t trig_length_in_updates = static_cast<uint64_t>(TRIG_LENGTH_MS * 48);
+constexpr uint64_t trig_led_length_in_updates = static_cast<uint64_t>(TRIG_LED_LENGTH_MS * 48);
 
 enum Mode {VCO, LFO, ENV};
 
@@ -48,6 +50,7 @@ class Module {
         void print_mode();
         uint16_t vo_offset, vo_scale;
         bool end_of_cycle;
+        bool eos_led;
 };
 
 // order for mux_assignemnts is ratio cv, ratio pot, shape cv, shape pot, algo cv, switch 1, switch 2, exp time cv

@@ -115,19 +115,31 @@ void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Mod
     #define MAX_PERCEIVABLE_FREQUENCY_Hz 40
     constexpr uint32_t max_phasor = MAX_PERCEIVABLE_FREQUENCY_Hz * HZPHASOR;
 
-    if (A.pha > max_phasor) {
-        leds.setPixelColor(PRI_A_LED, RED);
-        leds.setPixelColor(SEC_A_LED, RED);
-    } else {
+    // if (A.pha > max_phasor) {
+    //     leds.setPixelColor(PRI_A_LED, RED);
+    //     leds.setPixelColor(SEC_A_LED, RED);
+    // } else {
         leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
         leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0);
-    }
+    // }
 
-    if (B.pha > max_phasor) {
-        leds.setPixelColor(PRI_B_LED, BLUE);
-        leds.setPixelColor(SEC_B_LED, BLUE);
-    } else {
+    // if (B.pha > max_phasor) {
+    //     leds.setPixelColor(PRI_B_LED, BLUE);
+    //     leds.setPixelColor(SEC_B_LED, BLUE);
+    // } else {
         leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
         leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
+    // }
+
+    if (A.eos_led) {
+        leds.setPixelColor(TRIG_A_LED, RED);
+    } else {
+        leds.setPixelColor(TRIG_A_LED, BLACK);
+    }
+
+    if (B.eos_led) {
+        leds.setPixelColor(TRIG_B_LED, BLUE);
+    } else {
+        leds.setPixelColor(TRIG_B_LED, BLACK);
     }
 }
