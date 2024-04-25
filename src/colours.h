@@ -13,4 +13,13 @@
 #define PURPLE    0x7F00FF
 #define BLUE      0x0000FF
 
+typedef struct HSL {
+    uint32_t h;
+    uint8_t s;
+    uint8_t l;
+} HSL;
+
+#define RED_HSL (HSL){0, 100, 50}
+#define BLUE_HSL (HSL){240, 100, 50}
+
 #endif
