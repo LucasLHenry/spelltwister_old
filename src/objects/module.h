@@ -35,6 +35,7 @@ class Module {
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
     uint32_t prev_shifted_acc;
+    uint32_t acc_by_val[1024];
     public:
         bool follow;
         uint16_t shifted_acc;

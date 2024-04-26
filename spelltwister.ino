@@ -127,14 +127,6 @@ void TCC0_Handler() {
 }
 
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
-    // #define MAX_PERCEIVABLE_FREQUENCY_Hz 40
-    // constexpr uint32_t max_phasor = MAX_PERCEIVABLE_FREQUENCY_Hz * HZPHASOR;
-
-    // leds.setPixelColor(PRI_A_LED, better_dimmer(A.val >> 11, RED_HSL));
-    // leds.setPixelColor(SEC_A_LED, better_dimmer(modulator.a_val >> 11, RED_HSL));
-
-    // leds.setPixelColor(PRI_B_LED, better_dimmer(B.val >> 11, BLUE_HSL));
-    // leds.setPixelColor(SEC_B_LED, better_dimmer(modulator.b_val >> 11, BLUE_HSL));
     leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
     leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0);
 
