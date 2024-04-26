@@ -32,6 +32,7 @@ class Module {
     uint32_t get_phasor(Module& other);
     void update_mode();
     uint16_t get_pot_cv_val(bool for_rat);
+    int8_t get_mod_idx_offset();
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
     public:
@@ -52,6 +53,7 @@ class Module {
         uint16_t vo_offset, vo_scale;
         bool end_of_cycle, prev_eos;
         bool eos_led;
+        int8_t mod_idx;
 };
 
 // order for mux_assignemnts is ratio cv, ratio pot, shape cv, shape pot, algo cv, switch 1, switch 2, exp time cv
@@ -59,7 +61,7 @@ class Module {
 #define R_PT_IDX 1
 #define S_CV_IDX 2
 #define S_PT_IDX 3
-#define A_CV_IDX 4
+#define M_CV_IDX 4
 #define SW_1_IDX 5
 #define SW_2_IDX 6
 #define VO_IDX   7

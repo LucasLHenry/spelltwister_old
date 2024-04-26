@@ -13,6 +13,7 @@ uint32_t Module::get_phasor(Module& other) {
 
     if (!is_A && follow) {
         int8_t mult_val = mult_arr[val >> 7];
+        // pretty sure the optimizer is making these operations not an performance issue because the possible values are determinate?
         if (mult_val < 0) {
             return (other.pha / (-mult_val));
         } else {
@@ -35,7 +36,7 @@ void Module::update_mode() {
     bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
     if (is_A) {
         if (val1 && !val2) {
-            // if (mode != ENV) running = false;
+            if (mode != ENV) running = false;
             mode = ENV;
         } else if (!val1 && val2) {
             mode = VCO;
@@ -49,7 +50,7 @@ void Module::update_mode() {
             mode = VCO;
             running = true;
         } else if (!val1 && val2) {
-            // if (mode != ENV) running = false;
+            if (mode != ENV) running = false;
             mode = ENV;
         } else {
             mode = LFO;
@@ -79,6 +80,11 @@ uint16_t Module::get_pot_cv_val(bool for_rat) {
     }
 }
 
+int8_t Module::get_mod_idx_offset() {
+    algo_read.update(mux.read(mux_assignments[M_CV_IDX]));
+    return (algo_read.getValue() >> 7)  - 3; // between -3 and 4
+}
+
 
 uint16_t A_mux_assignments[] = {R_CV_A, R_POT_A, S_CV_A, S_POT_A, M_CV_A, SW_1_A, SW_2_A, EXP_CV_A};
 uint16_t B_mux_assignments[] = {R_CV_B, R_POT_B, S_CV_B, S_POT_B, M_CV_B, SW_1_B, SW_2_B, EXP_CV_B};
@@ -89,8 +95,8 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
     lin_time_pin(time_pin),
     rat_read(0, true),
     shp_read(0, true),
-    time_read(0, true, 0.1),
     algo_read(0, true),
+    time_read(0, true, 0.1),
     is_A(_is_A) {
         mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
 }
@@ -105,6 +111,8 @@ void Module::read_inputs_frequent(Module& other) {
     shape = get_pot_cv_val(false);
 
     pha = get_phasor(other);
+
+    mod_idx = get_mod_idx_offset();
 }
 
 void Module::read_inputs_infrequent() {

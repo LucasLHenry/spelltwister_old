@@ -2,7 +2,7 @@
 
 LedRing::LedRing(int enc_pin_1, int enc_pin_2, int btn_pin):
     enc(enc_pin_1, enc_pin_2),
-    btn(btn_pin, true, true) 
+    btn(btn_pin, true, true)
 {}
 
 void LedRing::write_leds(Adafruit_NeoPixel_ZeroDMA &leds) {
@@ -24,8 +24,18 @@ void LedRing::begin() {
     btn.attachClick(button_handler);
 }
 
-void LedRing::update() {
+void LedRing::update(int8_t a_change, int8_t b_change) {
+    // handle button
     btn.tick();
+
+    // handle cv
+    // a_idx += a_change;
+    // a_pos_raw += a_change << ENC_DIV;
+
+    // b_idx += b_change;
+    // b_pos_raw += b_change << ENC_DIV;   
+
+    // handle encoder
     new_enc_pos = enc.read();
     enc_change = new_enc_pos - enc_pos;
     enc_pos = new_enc_pos;
@@ -37,7 +47,7 @@ void LedRing::update() {
         b_pos_raw += enc_change;
         b_idx = (b_pos_raw >> ENC_DIV) % NUM_RING_LEDS;
         if (b_idx < 0) b_idx += 16;
-    }
+    } 
 }
 
 void button_handler() {

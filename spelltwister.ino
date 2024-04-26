@@ -92,7 +92,7 @@ void loop() {
         B.read_inputs_infrequent();
     }
     
-    ring.update();
+    ring.update(A.mod_idx, B.mod_idx);
     ring.write_leds(leds);
     write_signal_indicator_leds(leds, A, B, modulator);
     leds.show();
@@ -117,10 +117,10 @@ void TCC0_Handler() {
         A_SEC_REG = 1023 - (modulator.generate_A() >> 6);
         B_SEC_REG = 1023 - (modulator.generate_B() >> 6);
 
-        // not is in there because of an output inverter
         if (A.prev_eos != A.end_of_cycle) digitalWriteDirect(TRIG_OUT_A, !A.end_of_cycle);
         if (B.prev_eos != B.end_of_cycle) digitalWriteDirect(TRIG_OUT_B, !B.end_of_cycle);
         isr_counter++;
+
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }
