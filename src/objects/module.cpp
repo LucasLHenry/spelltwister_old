@@ -28,7 +28,6 @@ void Module::update_mode() {
     bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
     if (is_A) {
         if (val1 && !val2) {
-            if (mode != ENV) running = false;
             mode = ENV;
         } else if (!val1 && val2) {
             mode = VCO;
@@ -42,7 +41,6 @@ void Module::update_mode() {
             mode = VCO;
             running = true;
         } else if (!val1 && val2) {
-            if (mode != ENV) running = false;
             mode = ENV;
         } else {
             mode = LFO;
@@ -116,21 +114,32 @@ void Module::update() {
     prev_shifted_acc = shifted_acc;
     acc += pha;
     shifted_acc = acc >> 22;  // range is 0-1023
+
+    if (prev_shifted_acc > shifted_acc) {
+        if (running) {
+            end_of_cycle = true;
+            eos_led = true;
+            EOS_start_time = update_counter;
+            if (mode == ENV) running = false;
+        }
+    }
+
+    if (update_counter == EOS_start_time + trig_length_in_updates) end_of_cycle = false;
+    if (update_counter == EOS_start_time + trig_led_length_in_updates) eos_led = false;
+
     update_counter++;
 }
 
 uint16_t Module::generate() {
-    if (prev_shifted_acc > shifted_acc) {
-        end_of_cycle = true;
-        eos_led = true;
-        EOS_start_time = update_counter;
-        if (mode == ENV) running = false;
-    }
-    if (update_counter == EOS_start_time + trig_length_in_updates) end_of_cycle = false;
-    if (update_counter == EOS_start_time + trig_led_length_in_updates) eos_led = false;
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
     // if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
     return val;
+}
+
+void Module::reset() {
+    acc = 0;
+    shifted_acc = 0;
+    prev_shifted_acc = 0;
 }
 
 void Module::print_mode() {

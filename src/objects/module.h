@@ -24,7 +24,6 @@ enum Mode {VCO, LFO, ENV};
 class Module {
     uint64_t update_counter;
     uint64_t EOS_start_time;
-    uint32_t prev_shifted_acc;
     Mode mode;
     int lin_time_pin, mux_pin;
     bool is_A;
@@ -35,6 +34,7 @@ class Module {
     int8_t get_mod_idx_offset();
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
+    uint32_t prev_shifted_acc;
     public:
         bool follow;
         uint16_t shifted_acc;
@@ -47,6 +47,7 @@ class Module {
         void read_inputs_infrequent(); // for things that don't need to be updated as often
         void update();
         uint16_t generate();
+        void reset();
         uint16_t val;
         uint16_t algo_offset;
         void print_mode();

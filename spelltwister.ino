@@ -49,12 +49,12 @@ uint64_t runtime_s = 0;
 
 
 void A_sync_ISR() {
-    A.acc = 0;
+    A.reset();
     A.running = true;
 }
 
 void B_sync_ISR() {
-    B.acc = 0;
+    B.reset();
     B.running = true;
 }
 
