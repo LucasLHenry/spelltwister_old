@@ -3,6 +3,8 @@
 const int8_t mult_arr[8] = {-4, -2, 2, 3, 4, 5, 6, 8};
 
 uint32_t Module::get_phasor(Module& other) {
+    if (!is_A && follow) return other.pha;
+
     #define MIN_LFO_ENV_CYCLE_TIME_S 0.025
     #define MAX_LFO_ENV_CYCLE_TIME_S 10.0
     constexpr uint32_t min_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MAX_LFO_ENV_CYCLE_TIME_S);
@@ -10,16 +12,6 @@ uint32_t Module::get_phasor(Module& other) {
 
     uint16_t val = mux.read(mux_assignments[VO_IDX]);
     time_read.update(val);
-
-    if (!is_A && follow) {
-        int8_t mult_val = mult_arr[val >> 7];
-        // pretty sure the optimizer is making these operations not an performance issue because the possible values are determinate?
-        if (mult_val < 0) {
-            return (other.pha / (-mult_val));
-        } else {
-            return other.pha * mult_val;
-        }
-    }
 
     uint16_t processed_val = MAX(time_read.getValue() - vo_offset, 0);
     uint32_t outval;

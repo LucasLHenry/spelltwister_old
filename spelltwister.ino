@@ -60,6 +60,7 @@ void B_sync_ISR() {
 
 void follow_ISR() {
     B.follow = !B.follow;
+    if (B.follow) B.acc = A.acc;
 }
 
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator);
