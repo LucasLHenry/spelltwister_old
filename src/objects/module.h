@@ -29,19 +29,20 @@ class Module {
     int lin_time_pin, mux_pin;
     bool is_A;
     uint16_t* mux_assignments;
-    uint32_t get_phasor();
+    uint32_t get_phasor(Module& other);
     void update_mode();
     uint16_t get_pot_cv_val(bool for_rat);
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
     public:
+        bool follow;
         uint16_t shifted_acc;
         uint32_t acc, pha;
         uint16_t upslope, downslope;
         uint16_t ratio, shape;
         bool running;
         Module(int time_pin, int mux_pin, bool is_A);
-        void read_inputs_frequent(); // for things that need to be updated often
+        void read_inputs_frequent(Module& other); // for things that need to be updated often
         void read_inputs_infrequent(); // for things that don't need to be updated as often
         void update();
         uint16_t generate();
@@ -49,7 +50,7 @@ class Module {
         uint16_t algo_offset;
         void print_mode();
         uint16_t vo_offset, vo_scale;
-        bool end_of_cycle;
+        bool end_of_cycle, prev_eos;
         bool eos_led;
 };
 

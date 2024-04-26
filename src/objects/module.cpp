@@ -1,15 +1,26 @@
 #include "module.h"
 
-uint32_t Module::get_phasor() {
+const int8_t mult_arr[8] = {-4, -2, 2, 3, 4, 5, 6, 8};
+
+uint32_t Module::get_phasor(Module& other) {
     #define MIN_LFO_ENV_CYCLE_TIME_S 0.025
     #define MAX_LFO_ENV_CYCLE_TIME_S 10.0
     constexpr uint32_t min_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MAX_LFO_ENV_CYCLE_TIME_S);
     constexpr uint32_t max_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MIN_LFO_ENV_CYCLE_TIME_S);
 
     uint16_t val = mux.read(mux_assignments[VO_IDX]);
-    uint16_t processed_val = MAX(time_read.getValue() - vo_offset, 0);
     time_read.update(val);
 
+    if (!is_A && follow) {
+        int8_t mult_val = mult_arr[val >> 7];
+        if (mult_val < 0) {
+            return (other.pha / (-mult_val));
+        } else {
+            return other.pha * mult_val;
+        }
+    }
+
+    uint16_t processed_val = MAX(time_read.getValue() - vo_offset, 0);
     uint32_t outval;
     if (mode == VCO) {
         outval = pgm_read_dword_near(phasor_table + processed_val);
@@ -78,13 +89,13 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
     lin_time_pin(time_pin),
     rat_read(0, true),
     shp_read(0, true),
-    time_read(0, true),
+    time_read(0, true, 0.1),
     algo_read(0, true),
     is_A(_is_A) {
-    mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
+        mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
 }
 
-void Module::read_inputs_frequent() {
+void Module::read_inputs_frequent(Module& other) {
     ratio = get_pot_cv_val(true);
     if (rat_read.hasChanged()) {
         upslope = calc_upslope(ratio);
@@ -93,7 +104,7 @@ void Module::read_inputs_frequent() {
 
     shape = get_pot_cv_val(false);
 
-    pha = get_phasor();
+    pha = get_phasor(other);
 }
 
 void Module::read_inputs_infrequent() {
@@ -101,6 +112,7 @@ void Module::read_inputs_infrequent() {
 }
 
 void Module::update() {
+    prev_eos = end_of_cycle;
     prev_shifted_acc = shifted_acc;
     acc += pha;
     shifted_acc = acc >> 22;  // range is 0-1023

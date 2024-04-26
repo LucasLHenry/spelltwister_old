@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel_ZeroDMA.h>
+#include <OneButton.h>
 
 #include "src/hardware/register_functions.h"
 #include "src/hardware/pins.h"
@@ -38,6 +39,7 @@ LedRing* _LEDRING = &ring; // used for internal ISR stuff
 Module A(LIN_TIME_A, MUX_A, true);
 Module B(LIN_TIME_B, MUX_B, false);
 Modulator modulator(A, B, ring, algo_arr);
+OneButton follow_btn(FLW_BTN, false, false);
 
 uint64_t loop_counter = 0;
 uint64_t isr_counter = 0;
@@ -56,22 +58,34 @@ void B_sync_ISR() {
     B.running = true;
 }
 
+void follow_ISR() {
+    B.follow = !B.follow;
+}
+
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator);
 
 void setup() {
     Serial.begin(9600);
     leds.begin();
     ring.begin();
+
     setup_timers();
+
     attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(SIG_IN_B), B_sync_ISR, FALLING);
+    follow_btn.attachClick(follow_ISR);
+
     update_values_from_config(ring, A, B);
+
+    pinMode(TRIG_OUT_A, OUTPUT);
+    pinMode(TRIG_OUT_B, OUTPUT);
 }
 
 void loop() {
+    follow_btn.tick();
     // get new values from pots and CV
-    A.read_inputs_frequent();
-    B.read_inputs_frequent();
+    A.read_inputs_frequent(B);
+    B.read_inputs_frequent(A);
 
     if (loop_counter % 20 == 0) {
         A.read_inputs_infrequent();
@@ -104,42 +118,30 @@ void TCC0_Handler() {
         B_SEC_REG = 1023 - (modulator.generate_B() >> 6);
 
         // not is in there because of an output inverter
-        digitalWrite(TRIG_OUT_A, !A.end_of_cycle);
-        digitalWrite(TRIG_OUT_B, !B.end_of_cycle);
+        if (A.prev_eos != A.end_of_cycle) digitalWriteDirect(TRIG_OUT_A, !A.end_of_cycle);
+        if (B.prev_eos != B.end_of_cycle) digitalWriteDirect(TRIG_OUT_B, !B.end_of_cycle);
         isr_counter++;
         TCC0->INTFLAG.bit.CNT = 1;
     }
 }
 
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
-    #define MAX_PERCEIVABLE_FREQUENCY_Hz 40
-    constexpr uint32_t max_phasor = MAX_PERCEIVABLE_FREQUENCY_Hz * HZPHASOR;
+    // #define MAX_PERCEIVABLE_FREQUENCY_Hz 40
+    // constexpr uint32_t max_phasor = MAX_PERCEIVABLE_FREQUENCY_Hz * HZPHASOR;
 
-    // if (A.pha > max_phasor) {
-    //     leds.setPixelColor(PRI_A_LED, RED);
-    //     leds.setPixelColor(SEC_A_LED, RED);
-    // } else {
-        leds.setPixelColor(PRI_A_LED, better_dimmer(A.val >> 11, RED_HSL));
-        leds.setPixelColor(SEC_A_LED, better_dimmer(modulator.a_val >> 11, RED_HSL));
-    // }
+    // leds.setPixelColor(PRI_A_LED, better_dimmer(A.val >> 11, RED_HSL));
+    // leds.setPixelColor(SEC_A_LED, better_dimmer(modulator.a_val >> 11, RED_HSL));
 
-    // if (B.pha > max_phasor) {
-    //     leds.setPixelColor(PRI_B_LED, BLUE);
-    //     leds.setPixelColor(SEC_B_LED, BLUE);
-    // } else {
-        leds.setPixelColor(PRI_B_LED, better_dimmer(B.val >> 11, BLUE_HSL));
-        leds.setPixelColor(SEC_B_LED, better_dimmer(modulator.b_val >> 11, BLUE_HSL));
-    // }
+    // leds.setPixelColor(PRI_B_LED, better_dimmer(B.val >> 11, BLUE_HSL));
+    // leds.setPixelColor(SEC_B_LED, better_dimmer(modulator.b_val >> 11, BLUE_HSL));
+    leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
+    leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0);
 
-    if (A.eos_led) {
-        leds.setPixelColor(TRIG_A_LED, RED);
-    } else {
-        leds.setPixelColor(TRIG_A_LED, BLACK);
-    }
+    leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
+    leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
 
-    if (B.eos_led) {
-        leds.setPixelColor(TRIG_B_LED, BLUE);
-    } else {
-        leds.setPixelColor(TRIG_B_LED, BLACK);
-    }
+    leds.setPixelColor(TRIG_A_LED, (A.eos_led)? RED : BLACK);
+    leds.setPixelColor(TRIG_B_LED, (B.eos_led)? BLUE : BLACK);
+
+    leds.setPixelColor(FLW_LED, (B.follow)? PURPLE : BLACK);
 }

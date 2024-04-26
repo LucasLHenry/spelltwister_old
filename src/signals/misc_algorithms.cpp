@@ -54,36 +54,3 @@ uint8_t hsl_convert(float c, float t1, float t2) {
 
     return (uint8_t)(c*255); 
 }
-
-// HSL rgb_to_hsl(uint16_t r, uint16_t g, uint16_t b) {
-//     HSL out = {0, 0, 0};
-//     uint16_t min = MIN(MIN(r, g), b);
-//     uint16_t max = MAX(MAX(r, g), b);
-
-//     out.l = static_cast<uint8_t>((min + max) >> 1);
-
-//     if (min == max) out.s = 0;
-//     else {
-//         if (out.l <= 128) s = (max - min) / (max + min);
-//         else s = (max - min) / (512 - max - min);
-//     }
-
-//     int16_t h_buf;
-//     switch (max) {
-//         case r:
-//             h_buf = (g - b) / (max - min);
-//             break;
-//         case g:
-//             h_buf = 512 + (b - r) / (max - min);
-//             break;
-//         case b:
-//             h_buf = 1024 + (r - g) / (max - min);
-//             break;
-//     }
-//     h_buf *= 60;
-//     if (h_buf < 0) h_buf += 360;
-//     h_buf %= 360;
-//     out.h = static_cast<uint16_t>(h_buf);
-
-//     return out;
-// }
