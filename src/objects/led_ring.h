@@ -24,7 +24,7 @@ class LedRing {
         void write_leds(Adafruit_NeoPixel_ZeroDMA &leds);
         void begin();
         void update(int8_t a_change, int8_t b_change);
-        LedRing(int enc_pin_1, int enc_ping_2, int btn_pin);
+        LedRing(int enc_pin_1, int enc_pin_2, int btn_pin);
 
 };
 

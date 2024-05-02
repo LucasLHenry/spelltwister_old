@@ -72,7 +72,10 @@ uint16_t Module::get_pot_cv_val(bool for_rat) {
 
 int8_t Module::get_mod_idx_offset() {
     algo_read.update(mux.read(mux_assignments[M_CV_IDX]));
-    return (algo_read.getValue() >> 7)  - 3; // between -3 and 4
+    uint16_t raw_val = algo_read.getValue();
+    // if (is_A) Serial.println(raw_val >> 7);
+    return static_cast<int8_t>(raw_val >> 7);
+
 }
 
 

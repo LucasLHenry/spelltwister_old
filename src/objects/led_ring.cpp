@@ -27,7 +27,6 @@ void LedRing::begin() {
 void LedRing::update(int8_t a_change, int8_t b_change) {
     // handle button
     btn.tick();
-
     // handle cv
     // a_idx += a_change;
     // a_pos_raw += a_change << ENC_DIV;
