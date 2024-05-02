@@ -148,8 +148,6 @@ void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Mod
     //     leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
     //     leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
     // }
-    leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
-    leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
 
     leds.setPixelColor(TRIG_A_LED, (A.eos_led)? RED : BLACK);
     leds.setPixelColor(TRIG_B_LED, (B.eos_led)? BLUE : BLACK);
