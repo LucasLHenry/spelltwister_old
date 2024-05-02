@@ -127,11 +127,21 @@ void TCC0_Handler() {
 }
 
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
-    leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
-    leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0);
+    if (A.mode == ENV) {
+        leds.setPixelColor(PRI_A_LED, (A.val - HALF_Y) >> 8, 0, 0);
+        leds.setPixelColor(SEC_A_LED, (modulator.a_val - HALF_Y) >> 8, 0, 0);
+    } else {
+        leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
+        leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0); 
+    }
 
-    leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
-    leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
+    if (B.mode == ENV) {
+        leds.setPixelColor(PRI_B_LED, (B.val - HALF_Y) >> 8, 0, 0);
+        leds.setPixelColor(SEC_B_LED, (modulator.b_val - HALF_Y) >> 8, 0, 0);
+    } else {
+        leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
+        leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
+    }
 
     leds.setPixelColor(TRIG_A_LED, (A.eos_led)? RED : BLACK);
     leds.setPixelColor(TRIG_B_LED, (B.eos_led)? BLUE : BLACK);

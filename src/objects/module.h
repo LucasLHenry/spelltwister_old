@@ -24,7 +24,6 @@ enum Mode {VCO, LFO, ENV};
 class Module {
     uint64_t update_counter;
     uint64_t EOS_start_time;
-    Mode mode;
     int lin_time_pin, mux_pin;
     bool is_A;
     uint16_t* mux_assignments;
@@ -37,6 +36,7 @@ class Module {
     uint32_t prev_shifted_acc;
     uint32_t acc_by_val[1024];
     public:
+        Mode mode;
         bool follow;
         uint16_t shifted_acc;
         uint32_t acc, pha;
