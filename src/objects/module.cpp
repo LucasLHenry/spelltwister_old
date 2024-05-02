@@ -13,14 +13,8 @@ uint32_t Module::get_phasor(Module& other) {
     uint16_t val = mux.read(mux_assignments[VO_IDX]);
     time_read.update(val);
 
-    uint16_t processed_val = MAX(time_read.getValue() - vo_offset, 0);
-    uint32_t outval;
-    if (mode == VCO) {
-        outval = pgm_read_dword_near(phasor_table + processed_val);
-    } else {
-        outval = pgm_read_dword_near(slow_phasor_table + processed_val);
-    }
-    return outval;
+    uint16_t processed_val = CLIP(1023 - ((time_read.getValue() * 321) >> 8) - 150, 0, 1023);
+    return pgm_read_dword_near(((mode == VCO)? phasor_table : slow_phasor_table) + processed_val);
 }
 
 void Module::update_mode() {
@@ -96,6 +90,7 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
 
 void Module::read_inputs_frequent(Module& other) {
     ratio = get_pot_cv_val(true);
+
     if (rat_read.hasChanged()) {
         upslope = calc_upslope(ratio);
         downslope = calc_downslope(ratio);
@@ -136,7 +131,7 @@ void Module::update() {
 uint16_t Module::generate() {
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
     if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
-    if (ratio > shifted_acc) acc_by_val[val >> 6] = acc;
+    if (ratio > shifted_acc) acc_by_val[val >> 6] = acc;  // for retriggering of envelopes
     return val;
 }
 

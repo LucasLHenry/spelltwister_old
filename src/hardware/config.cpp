@@ -49,9 +49,9 @@ void update_values_from_config(LedRing& ring, Module& A, Module& B) {
     } else {
         // DEFAULT VALUES
         A.vo_offset = 155;
-        A.vo_scale  = 1;
+        A.vo_scale  = 200;
         B.vo_offset = 148;
-        B.vo_scale  = 1;
+        B.vo_scale  = 255;
     }
 }
 

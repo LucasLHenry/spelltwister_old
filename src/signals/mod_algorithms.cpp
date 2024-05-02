@@ -73,7 +73,7 @@ uint16_t gate(Module& main, Module& aux) {
 }
 
 uint16_t amplitude_mod(Module& main, Module& aux) {
-    return static_cast<uint16_t>((main.val * static_cast<uint64_t>(aux.val)) >> 16);
+    return static_cast<uint16_t>((((static_cast<int64_t>(main.val) - HALF_Y) * (static_cast<int64_t>(aux.val) - HALF_Y)) >> 15) + HALF_Y);
 }
 
 uint16_t frequency_mod(Module& main, Module& aux) {
