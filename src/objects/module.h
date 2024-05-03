@@ -21,6 +21,16 @@ constexpr uint64_t trig_led_length_in_updates = static_cast<uint64_t>(TRIG_LED_L
 
 enum Mode {VCO, LFO, ENV};
 
+typedef struct ConfigData {
+    uint16_t vo_offset;
+    uint16_t vo_scale;
+    uint16_t mod_offset;
+    uint16_t shape_offset;
+    uint16_t ratio_offset;
+} ConfigData;
+
+bool configData_eq(ConfigData& one, ConfigData& two);
+
 class Module {
     uint16_t raw_shape_pot, raw_ratio_pot, raw_shape_cv, raw_ratio_cv, raw_lin_time, raw_exp_time, raw_mod;
     uint64_t update_counter;
@@ -37,6 +47,7 @@ class Module {
     uint32_t prev_shifted_acc;
     uint32_t acc_by_val[1024];
     public:
+        ConfigData configs;
         Mode mode;
         bool follow;
         uint16_t shifted_acc;
@@ -53,7 +64,6 @@ class Module {
         uint16_t val;
         uint16_t algo_offset;
         void print_info(bool verbose);
-        uint16_t vo_offset, vo_scale;
         bool end_of_cycle, prev_eos;
         bool eos_led;
         int8_t mod_idx;

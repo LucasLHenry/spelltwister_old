@@ -1,5 +1,14 @@
 #include "module.h"
 
+bool configData_eq(ConfigData& one, ConfigData& two) {
+    if (one.vo_offset != two.vo_offset)       return false;
+    if (one.vo_scale != two.vo_scale)         return false;
+    if (one.mod_offset != two.mod_offset)     return false;
+    if (one.shape_offset != two.shape_offset) return false;
+    if (one.ratio_offset != two.ratio_offset) return false;
+    return true;
+}
+
 uint32_t Module::get_phasor(Module& other) {
     if (!is_A && follow) return other.pha;
 
@@ -11,7 +20,7 @@ uint32_t Module::get_phasor(Module& other) {
     raw_exp_time = mux.read(mux_assignments[VO_IDX]);
     time_read.update(raw_exp_time);
 
-    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * vo_scale) >> 8) - vo_offset, 0, MAX_X);
+    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * configs.vo_scale) >> 8) - configs.vo_scale, 0, MAX_X);
     return pgm_read_dword_near(((mode == VCO)? phasor_table : slow_phasor_table) + processed_val);
 }
 
@@ -35,12 +44,12 @@ uint16_t Module::get_pot_cv_val(bool for_rat) {
     if (for_rat) {
         raw_ratio_pot = mux.read(mux_assignments[R_PT_IDX]);
         raw_ratio_cv = mux.read(mux_assignments[R_CV_IDX]);
-        rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - HALF_X, 0, MAX_X));
+        rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X));
         return rat_read.getValue();
     } else {
         raw_shape_pot = mux.read(mux_assignments[S_PT_IDX]);
         raw_shape_cv = mux.read(mux_assignments[S_CV_IDX]);
-        shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - HALF_X, 0, MAX_X));
+        shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X));
         return shp_read.getValue();
     }
 }
@@ -48,7 +57,7 @@ uint16_t Module::get_pot_cv_val(bool for_rat) {
 int8_t Module::get_mod_idx_offset() {
     algo_read.update(mux.read(mux_assignments[M_CV_IDX]));
     raw_mod = algo_read.getValue();
-    return static_cast<int8_t>(raw_mod >> 7);
+    return static_cast<int8_t>((raw_mod - configs.mod_offset) >> 7);
 }
 
 
@@ -139,6 +148,22 @@ void Module::print_info(bool verbose) {
     Serial.println(pha);
 
     if (verbose) {
-        Serial.print("mod val");
+        Serial.print("mod val: ");
+        Serial.println(raw_mod);
+
+        Serial.print("rat pot: ");
+        Serial.println(raw_ratio_pot);
+
+        Serial.print("rat cv: ");
+        Serial.println(raw_ratio_cv);
+
+        Serial.print("shp pot: ");
+        Serial.println(raw_shape_pot);
+
+        Serial.print("shp cv: ");
+        Serial.println(raw_shape_cv);
+
+        Serial.print("exp time: ");
+        Serial.println(raw_exp_time);
     }
 }
