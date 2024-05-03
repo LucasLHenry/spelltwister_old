@@ -78,6 +78,7 @@ void setup() {
     leds.begin();
     ring.begin();
 
+    // set_cpu_frequency(48);
     setup_timers();  // sets up TCC0_Handler call frequency and connects waveform outputs
 
     attachInterrupt(digitalPinToInterrupt(SIG_IN_A), A_sync_ISR, FALLING);

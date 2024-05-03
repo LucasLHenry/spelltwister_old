@@ -40,15 +40,17 @@ void Module::update_mode() {
 uint16_t Module::get_ratio() {
     raw_ratio_pot = mux.read(mux_assignments[R_PT_IDX]);
     raw_ratio_cv = mux.read(mux_assignments[R_CV_IDX]);
-    rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X));
-    return rat_read.getValue();
+    // rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X));
+    // return rat_read.getValue();
+    return (CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X) >> 2) << 2;
 }
 
 uint16_t Module::get_shape() {
     raw_shape_pot = mux.read(mux_assignments[S_PT_IDX]);
     raw_shape_cv = mux.read(mux_assignments[S_CV_IDX]);
-    shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X));
-    return shp_read.getValue();
+    // shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X));
+    // return shp_read.getValue();
+    return (CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X) >> 2) << 2;
 }
 
 int8_t Module::get_mod_idx_change() {
@@ -75,11 +77,16 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
     time_read(0, true, 0.1),
     is_A(_is_A) {
         mux_assignments = (is_A)? A_mux_assignments : B_mux_assignments;
+        shape = 512;
+        ratio = 512;
+        upslope = calc_upslope(ratio);
+        downslope = calc_upslope(ratio);
 }
 
 void Module::read_inputs_frequent(Module& other) {
-    ratio = get_ratio();
-    if (rat_read.hasChanged()) {
+    uint16_t temp_ratio = get_ratio();
+    if (temp_ratio != ratio) {
+        ratio = temp_ratio;
         upslope = calc_upslope(ratio);
         downslope = calc_downslope(ratio);
     }

@@ -11,7 +11,7 @@
 #define B_TRIG_REG PORT_PA20
 
 void setup_timers();
-
 void digitalWriteDirect(int PIN, boolean val);
+void set_cpu_frequency(uint8_t frequency);
 
 #endif

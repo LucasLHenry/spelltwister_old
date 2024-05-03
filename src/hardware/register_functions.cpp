@@ -29,11 +29,6 @@ void setup_timers() {
     TCC0->PER.reg = 1088;  //  48 MHz / 1088 = 44.12 kHz
     while (TCC0->SYNCBUSY.bit.PER);
 
-    // Set PWM signal to output 50% duty cycle
-    // n for CC[n] is determined by n = x % 4 where x is from WO[x]
-    TCC0->CC[2].reg = 511;
-    while (TCC0->SYNCBUSY.bit.CC2);
-
     // Configure PA18 (D10 on Arduino Zero) to be output
     PORT->Group[PORTA].DIRSET.reg = PORT_PA18;      // Set pin as output
     PORT->Group[PORTA].OUTCLR.reg = PORT_PA18;      // Set pin to low
@@ -55,12 +50,6 @@ void setup_timers() {
     // Connect TCC0 timer to PA18. Function F is TCC0/WO[2] for PA18.
     // Odd pin num (2*n + 1): use PMUXO
     // Even pin num (2*n): use PMUXE
-    // PORT->Group[PORTA].PMUX[9].reg = PORT_PMUX_PMUXE_F;  // PA18
-    // PORT->Group[PORTA].PMUX[9].reg = PORT_PMUX_PMUXO_F;  // PA19
-    // PORT->Group[PORTA].PMUX[2].reg = PORT_PMUX_PMUXE_E;  // PA04
-    // PORT->Group[PORTA].PMUX[2].reg = PORT_PMUX_PMUXO_E;  // PA05
-
-
     PORT->Group[g_APinDescription[10].ulPort].PMUX[g_APinDescription[10].ulPin >> 1].reg |= PORT_PMUX_PMUXE_F;  // D10 is on PA18 = even   WO[2]
     PORT->Group[g_APinDescription[12].ulPort].PMUX[g_APinDescription[12].ulPin >> 1].reg |= PORT_PMUX_PMUXO_F; // D12 is on PA19 = odd  WO[3]
     PORT->Group[g_APinDescription[A3].ulPort].PMUX[g_APinDescription[A3].ulPin >> 1].reg |= PORT_PMUX_PMUXE_E;  // A3 is on PA04 = even WO[0]
@@ -77,8 +66,50 @@ void setup_timers() {
 }
 
 
-// not currently working. Don't know why
+// make sure to set up your pins as output first!
 void digitalWriteDirect(int PIN, boolean val) {
     if(val) PORT->Group[g_APinDescription[PIN].ulPort].OUTSET.reg = (1ul << g_APinDescription[PIN].ulPin);
     else PORT->Group[g_APinDescription[PIN].ulPort].OUTCLR.reg = (1ul << g_APinDescription[PIN].ulPin);
+}
+
+void set_cpu_frequency(uint8_t frequency) {
+    if(frequency < 1 || 96 < frequency){
+        return;
+    }
+
+    USBDevice.detach();
+
+    GCLK->GENDIV.reg = GCLK_GENDIV_ID(5) | GCLK_GENDIV_DIV(1);
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(5) | GCLK_GENCTRL_SRC_DFLL48M | GCLK_GENCTRL_IDC | GCLK_GENCTRL_GENEN;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_USB | GCLK_CLKCTRL_GEN_GCLK5;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_USB | GCLK_CLKCTRL_GEN_GCLK5 | GCLK_CLKCTRL_CLKEN;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+
+    GCLK->GENDIV.reg = GCLK_GENDIV_ID(4) | GCLK_GENDIV_DIV(48);
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4) | GCLK_GENCTRL_SRC_DFLL48M | GCLK_GENCTRL_IDC | GCLK_GENCTRL_GENEN;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_FDPLL | GCLK_CLKCTRL_GEN_GCLK4;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_FDPLL | GCLK_CLKCTRL_GEN_GCLK4 | GCLK_CLKCTRL_CLKEN;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+
+    NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_RWS((frequency + 23) / 24 - 1);
+    SYSCTRL->DPLLRATIO.reg = SYSCTRL_DPLLRATIO_LDR(frequency - 1);
+    SYSCTRL->DPLLCTRLA.reg = SYSCTRL_DPLLCTRLA_ENABLE;
+    SYSCTRL->DPLLCTRLB.reg = SYSCTRL_DPLLCTRLB_FILTER(SYSCTRL_DPLLCTRLB_FILTER_DEFAULT_Val) | SYSCTRL_DPLLCTRLB_REFCLK_GCLK;
+    while(!SYSCTRL->DPLLSTATUS.bit.LOCK & !SYSCTRL->DPLLSTATUS.bit.CLKRDY);
+
+    GCLK->GENDIV.reg = GCLK_GENDIV_ID(0) | GCLK_GENDIV_DIV(1);
+    while(GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(0) | GCLK_GENCTRL_SRC_FDPLL | GCLK_GENCTRL_IDC | GCLK_GENCTRL_GENEN;
+    while(GCLK->STATUS.bit.SYNCBUSY);
+
+    SysTick->LOAD = frequency * 1000 - 1;
+    SysTick->VAL = 0;
+
+    USBDevice.attach();
 }
