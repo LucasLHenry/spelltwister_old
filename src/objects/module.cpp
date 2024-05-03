@@ -51,10 +51,13 @@ uint16_t Module::get_shape() {
     return shp_read.getValue();
 }
 
-int8_t Module::get_mod_idx_offset() {
+int8_t Module::get_mod_idx_change() {
+    prev_mod_idx = mod_idx;
+
     algo_read.update(mux.read(mux_assignments[M_CV_IDX]));
     raw_mod = algo_read.getValue();
-    return static_cast<int8_t>((raw_mod - configs.mod_offset) >> 7);
+    mod_idx = static_cast<int8_t>((raw_mod - configs.mod_offset) >> 7);
+    return mod_idx - prev_mod_idx;
 }
 
 
@@ -83,7 +86,7 @@ void Module::read_inputs_frequent(Module& other) {
 
     shape = get_shape();
     pha = get_phasor(other);  // need to pass other in case we're in follow mode
-    mod_idx = get_mod_idx_offset();
+    mod_idx_change = get_mod_idx_change();
 }
 
 void Module::read_inputs_infrequent() {

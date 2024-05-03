@@ -84,7 +84,6 @@ void setup() {
 }
 
 void loop() {
-    Serial.println(A.mod_idx);
     follow_btn.tick();
     
     A.read_inputs_frequent(B);
@@ -95,7 +94,7 @@ void loop() {
         B.read_inputs_infrequent();
     }
     
-    ring.update(A.mod_idx, B.mod_idx);
+    ring.update(A.mod_idx_change, B.mod_idx_change);
     ring.write_leds(leds);
     write_signal_indicator_leds(leds, A, B, modulator);
     leds.show();

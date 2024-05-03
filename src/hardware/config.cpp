@@ -11,7 +11,7 @@ FlashStorage(a_config_data_storage, ConfigData);
 FlashStorage(b_config_data_storage, ConfigData);
 
 
-const ConfigData a_default_config_data = {264, 322, 570, 570, 570, 570};
+const ConfigData a_default_config_data = {264, 322, 570, 567, 570, 570};
 const ConfigData b_default_config_data = {264, 322, 570, 570, 570, 574};
 
 char config_exists_flag = 'S';

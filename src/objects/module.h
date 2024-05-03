@@ -42,11 +42,12 @@ class Module {
     void update_mode();
     uint16_t get_ratio();
     uint16_t get_shape();
-    int8_t get_mod_idx_offset();
+    int8_t get_mod_idx_change();
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;
     uint32_t prev_shifted_acc;
     uint32_t acc_by_val[1024];
+    int8_t mod_idx, prev_mod_idx;
     public:
         ConfigData configs;
         Mode mode;
@@ -67,7 +68,7 @@ class Module {
         void print_info(bool verbose);
         bool end_of_cycle, prev_eos;
         bool eos_led;
-        int8_t mod_idx;
+        int8_t mod_idx_change;
 };
 
 // order for mux_assignemnts is ratio cv, ratio pot, shape cv, shape pot, algo cv, switch 1, switch 2, exp time cv
