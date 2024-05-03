@@ -7,14 +7,13 @@
 #include "../signals/generator.h"
 #include "../tables/phasors.h"
 #include "../tables/slow_phasors.h"
+#include "../settings.h"
 
 #ifndef MODULE_CLASS_H
 #define MODULE_CLASS_H
 
 #define HZPHASOR 94472 //phasor value for 1 hz.
 
-#define TRIG_LENGTH_MS 0.25
-#define TRIG_LED_LENGTH_MS 75
 // ms * 1s/1000ms * 48000 updates/s
 constexpr uint64_t trig_length_in_updates = static_cast<uint64_t>(TRIG_LENGTH_MS * 48);
 constexpr uint64_t trig_led_length_in_updates = static_cast<uint64_t>(TRIG_LED_LENGTH_MS * 48);
@@ -24,6 +23,7 @@ enum Mode {VCO, LFO, ENV};
 typedef struct ConfigData {
     uint16_t vo_offset;
     uint16_t vo_scale;
+    uint16_t fm_offset;
     uint16_t mod_offset;
     uint16_t shape_offset;
     uint16_t ratio_offset;

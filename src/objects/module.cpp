@@ -3,6 +3,7 @@
 bool configData_eq(ConfigData& one, ConfigData& two) {
     if (one.vo_offset != two.vo_offset)       return false;
     if (one.vo_scale != two.vo_scale)         return false;
+    if (one.fm_offset != two.fm_offset)       return false;
     if (one.mod_offset != two.mod_offset)     return false;
     if (one.shape_offset != two.shape_offset) return false;
     if (one.ratio_offset != two.ratio_offset) return false;
@@ -12,15 +13,12 @@ bool configData_eq(ConfigData& one, ConfigData& two) {
 uint32_t Module::get_phasor(Module& other) {
     if (!is_A && follow) return other.pha;
 
-    #define MIN_LFO_ENV_CYCLE_TIME_S 0.025
-    #define MAX_LFO_ENV_CYCLE_TIME_S 10.0
-    constexpr uint32_t min_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MAX_LFO_ENV_CYCLE_TIME_S);
-    constexpr uint32_t max_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MIN_LFO_ENV_CYCLE_TIME_S);
-
     raw_exp_time = mux.read(mux_assignments[VO_IDX]);
     time_read.update(raw_exp_time);
 
-    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * configs.vo_scale) >> 8) + configs.vo_offset, 0, MAX_X);
+    int16_t fm_val = (analogRead(lin_time_pin) - configs.fm_offset) / FM_ATTENUATION;
+
+    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * configs.vo_scale) >> 8) + configs.vo_offset + fm_val, 0, MAX_X);
     return pgm_read_dword_near(((mode == VCO)? phasor_table : slow_phasor_table) + processed_val);
 }
 
@@ -78,16 +76,13 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
 
 void Module::read_inputs_frequent(Module& other) {
     ratio = get_ratio();
-
     if (rat_read.hasChanged()) {
         upslope = calc_upslope(ratio);
         downslope = calc_downslope(ratio);
     }
 
     shape = get_shape();
-
     pha = get_phasor(other);  // need to pass other in case we're in follow mode
-
     mod_idx = get_mod_idx_offset();
 }
 

@@ -16,8 +16,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define CONFIG_WRITE_PERIOD_S 10
-
 void update_values_from_config(LedRing& ring, Module& A, Module& B);
 void write_encoder_to_config(LedRing& ring);
 void write_calibration_to_config(Module& A, Module& B);

@@ -11,6 +11,7 @@
 #include "src/hardware/config.h"
 #include "src/objects/modulator.h"
 #include "src/signals/misc_algorithms.h"
+#include "src/settings.h"
 
 // ALGORITHMS ON RING
 algo_f_ptr algo_arr[16] = {
@@ -83,7 +84,7 @@ void setup() {
 }
 
 void loop() {
-    A.print_info(false);
+    Serial.println(A.mod_idx);
     follow_btn.tick();
     
     A.read_inputs_frequent(B);

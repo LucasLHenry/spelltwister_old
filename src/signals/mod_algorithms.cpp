@@ -9,8 +9,8 @@ uint16_t difference(Module& main, Module& aux) {
 }
 
 uint16_t exculsive_or(Module& main, Module& aux) {
-    uint16_t top = main.val & 0xF000;
-    uint16_t bottom = (main.val & 0x0FFF) ^ (aux.val & 0x0FFF);
+    uint16_t top = main.val & 0xE000;
+    uint16_t bottom = (main.val & 0x1FFF) ^ (aux.val & 0x1FFF);
     return top | bottom;
 }
 
@@ -33,9 +33,7 @@ uint16_t rectify(Module& main, Module& aux) {
 }
 
 uint16_t bitcrush(Module& main, Module& aux) {
-    #define CRUSH_AMT 13
     return (main.val >> CRUSH_AMT) << CRUSH_AMT;
-    #undef CRUSH_AMT
 }
 
 
@@ -55,7 +53,7 @@ uint16_t sample_rate_reduce(Module& main, Module& aux) {
 }
 
 uint16_t wavefold(Module& main, Module& aux) {
-    return 0;
+    return pgm_read_word_near(sine_fold + (main.val >> 6));
 }
 
 uint16_t ratio_mod(Module& main, Module& aux) {
@@ -68,7 +66,7 @@ uint16_t shape_mod(Module& main, Module& aux) {
 }
 
 uint16_t gate(Module& main, Module& aux) {
-    if (aux.val < HALF_Y) return 0;
+    if (aux.val <= HALF_Y) return 0;
     return main.val;
 }
 

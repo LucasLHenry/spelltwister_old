@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "../objects/module.h"
 #include "generator.h"
+#include "../tables/transfer_functions/sinusoid_fold.h"
+#include "../settings.h"
 
 #ifndef MODULATION_ALGORITHMS_H
 #define MODULATION_ALGORITHMS_H
