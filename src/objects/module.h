@@ -11,7 +11,7 @@
 #ifndef MODULE_CLASS_H
 #define MODULE_CLASS_H
 
-#define HZPHASOR 91183 //phasor value for 1 hz.
+#define HZPHASOR 94472 //phasor value for 1 hz.
 
 #define TRIG_LENGTH_MS 0.25
 #define TRIG_LED_LENGTH_MS 75
@@ -40,7 +40,8 @@ class Module {
     uint16_t* mux_assignments;
     uint32_t get_phasor(Module& other);
     void update_mode();
-    uint16_t get_pot_cv_val(bool for_rat);
+    uint16_t get_ratio();
+    uint16_t get_shape();
     int8_t get_mod_idx_offset();
     ResponsiveAnalogRead rat_read, shp_read, time_read, algo_read;
     admux::Mux mux;

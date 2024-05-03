@@ -83,6 +83,7 @@ void setup() {
 }
 
 void loop() {
+    A.print_info(false);
     follow_btn.tick();
     
     A.read_inputs_frequent(B);

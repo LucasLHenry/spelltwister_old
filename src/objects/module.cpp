@@ -20,7 +20,7 @@ uint32_t Module::get_phasor(Module& other) {
     raw_exp_time = mux.read(mux_assignments[VO_IDX]);
     time_read.update(raw_exp_time);
 
-    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * configs.vo_scale) >> 8) - configs.vo_scale, 0, MAX_X);
+    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * configs.vo_scale) >> 8) + configs.vo_offset, 0, MAX_X);
     return pgm_read_dword_near(((mode == VCO)? phasor_table : slow_phasor_table) + processed_val);
 }
 
@@ -39,19 +39,18 @@ void Module::update_mode() {
     if (mode != ENV) running = true;
 }
 
-// if not for ratio, its for shape
-uint16_t Module::get_pot_cv_val(bool for_rat) {
-    if (for_rat) {
-        raw_ratio_pot = mux.read(mux_assignments[R_PT_IDX]);
-        raw_ratio_cv = mux.read(mux_assignments[R_CV_IDX]);
-        rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X));
-        return rat_read.getValue();
-    } else {
-        raw_shape_pot = mux.read(mux_assignments[S_PT_IDX]);
-        raw_shape_cv = mux.read(mux_assignments[S_CV_IDX]);
-        shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X));
-        return shp_read.getValue();
-    }
+uint16_t Module::get_ratio() {
+    raw_ratio_pot = mux.read(mux_assignments[R_PT_IDX]);
+    raw_ratio_cv = mux.read(mux_assignments[R_CV_IDX]);
+    rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - configs.ratio_offset, 0, MAX_X));
+    return rat_read.getValue();
+}
+
+uint16_t Module::get_shape() {
+    raw_shape_pot = mux.read(mux_assignments[S_PT_IDX]);
+    raw_shape_cv = mux.read(mux_assignments[S_CV_IDX]);
+    shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - configs.shape_offset, 0, MAX_X));
+    return shp_read.getValue();
 }
 
 int8_t Module::get_mod_idx_offset() {
@@ -78,14 +77,14 @@ Module::Module(int time_pin, int mux_pin, bool _is_A):
 }
 
 void Module::read_inputs_frequent(Module& other) {
-    ratio = get_pot_cv_val(true);
+    ratio = get_ratio();
 
     if (rat_read.hasChanged()) {
         upslope = calc_upslope(ratio);
         downslope = calc_downslope(ratio);
     }
 
-    shape = get_pot_cv_val(false);
+    shape = get_shape();
 
     pha = get_phasor(other);  // need to pass other in case we're in follow mode
 

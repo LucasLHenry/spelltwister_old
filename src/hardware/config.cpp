@@ -1,4 +1,4 @@
-#include <FlashAsEEPROM_SAMD.h>  // 
+#include <FlashAsEEPROM_SAMD.h>
 
 #include "config.h"
 
@@ -10,14 +10,9 @@ FlashStorage(calibration_flag_storage, char);
 FlashStorage(a_config_data_storage, ConfigData);
 FlashStorage(b_config_data_storage, ConfigData);
 
-FlashStorage(a_vo_offset_storage, int);
-FlashStorage(b_vo_offset_storage, int);
-FlashStorage(a_vo_scale_storage, int);
-FlashStorage(b_vo_scale_storage, int);
 
-
-const ConfigData a_default_config_data = {177, 321, 570, 570, 570};
-const ConfigData b_default_config_data = {169, 321, 570, 570, 574};
+const ConfigData a_default_config_data = {264, 321, 570, 570, 570};
+const ConfigData b_default_config_data = {264, 321, 570, 570, 574};
 
 char config_exists_flag = 'S';
 
