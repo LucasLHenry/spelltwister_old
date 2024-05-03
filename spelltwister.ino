@@ -108,7 +108,7 @@ void loop() {
 }
 
 
-// called at 48kHz, generates the signal samples
+// called at 44.1 kHz, generates the signal samples
 void TCC0_Handler() {
     if (TCC0->INTFLAG.bit.CNT == 1) {
         A.update();
@@ -128,7 +128,6 @@ void TCC0_Handler() {
     }
 }
 
-#define RECT(x) (((x) > 0)? (x) : -(x))
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
     if (A.mode == ENV) {
         leds.setPixelColor(PRI_A_LED, (A.val - HALF_Y) >> 7, 0, 0);
@@ -137,6 +136,8 @@ void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Mod
         leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
         leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0); 
     }
+    
+    // #define RECT(x) (((x) > 0)? (x) : -(x))
     // leds.setPixelColor(PRI_A_LED, RECT(static_cast<int32_t>(A.val - HALF_Y)) >> 8, 0, 0);
     // leds.setPixelColor(SEC_A_LED, RECT(static_cast<int32_t>(modulator.a_val - HALF_Y)) >> 8, 0, 0);
 

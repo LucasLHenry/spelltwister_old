@@ -117,12 +117,12 @@ void Module::update() {
 uint16_t Module::generate() {
     val = (running)? waveform_generator(shifted_acc, shape, ratio, upslope, downslope) : 0;
     if (mode == ENV) val = (val >> 1) + HALF_Y;  // so that it goes from 0 to top instead of -top to top
-    if (ratio > shifted_acc) acc_by_val[val >> 6] = acc;  // for retriggering of envelopes
+    if (shifted_acc < ratio) acc_by_val[val >> 6] = acc;  // for retriggering of envelopes
     return val;
 }
 
 void Module::reset() {
-    if (mode == ENV && ratio <= shifted_acc) {
+    if (mode == ENV && shifted_acc >= ratio) {
         acc = acc_by_val[val >> 6];
         shifted_acc = acc >> 22;
         prev_shifted_acc = shifted_acc;
