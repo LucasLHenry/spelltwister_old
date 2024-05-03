@@ -22,6 +22,7 @@ constexpr uint64_t trig_led_length_in_updates = static_cast<uint64_t>(TRIG_LED_L
 enum Mode {VCO, LFO, ENV};
 
 class Module {
+    uint16_t raw_shape_pot, raw_ratio_pot, raw_shape_cv, raw_ratio_cv, raw_lin_time, raw_exp_time, raw_mod;
     uint64_t update_counter;
     uint64_t EOS_start_time;
     int lin_time_pin, mux_pin;
@@ -51,7 +52,7 @@ class Module {
         void reset();
         uint16_t val;
         uint16_t algo_offset;
-        void print_mode();
+        void print_info(bool verbose);
         uint16_t vo_offset, vo_scale;
         bool end_of_cycle, prev_eos;
         bool eos_led;

@@ -1,7 +1,5 @@
 #include "module.h"
 
-const int8_t mult_arr[8] = {-4, -2, 2, 3, 4, 5, 6, 8};
-
 uint32_t Module::get_phasor(Module& other) {
     if (!is_A && follow) return other.pha;
 
@@ -10,69 +8,51 @@ uint32_t Module::get_phasor(Module& other) {
     constexpr uint32_t min_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MAX_LFO_ENV_CYCLE_TIME_S);
     constexpr uint32_t max_lfo_env_phasor = static_cast<uint32_t>(HZPHASOR / MIN_LFO_ENV_CYCLE_TIME_S);
 
-    uint16_t val = mux.read(mux_assignments[VO_IDX]);
-    time_read.update(val);
+    raw_exp_time = mux.read(mux_assignments[VO_IDX]);
+    time_read.update(raw_exp_time);
 
-    uint16_t processed_val = CLIP(1023 - ((time_read.getValue() * 321) >> 8) - 150, 0, 1023);
+    uint16_t processed_val = CLIP(MAX_X - ((time_read.getValue() * vo_scale) >> 8) - vo_offset, 0, MAX_X);
     return pgm_read_dword_near(((mode == VCO)? phasor_table : slow_phasor_table) + processed_val);
 }
 
 void Module::update_mode() {
-    bool val1 = (mux.read(mux_assignments[SW_1_IDX]) > 511)? true : false;
-    bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > 511)? true : false;
+    bool val1 = (mux.read(mux_assignments[SW_1_IDX]) > HALF_X)? true : false;
+    bool val2 = (mux.read(mux_assignments[SW_2_IDX]) > HALF_X)? true : false;
     if (is_A) {
-        if (val1 && !val2) {
-            mode = ENV;
-        } else if (!val1 && val2) {
-            mode = VCO;
-            running = true;
-        } else {
-            mode = LFO;
-            running = true;
-        }
+        if (val1 && !val2) mode = ENV;
+        else if (!val1 && val2) mode = VCO;
+        else mode = LFO;
     } else {
-        if (val1 && !val2) {
-            mode = VCO;
-            running = true;
-        } else if (!val1 && val2) {
-            mode = ENV;
-        } else {
-            mode = LFO;
-            running = true;
-        }
+        if (val1 && !val2) mode = VCO;
+        else if (!val1 && val2) mode = ENV;
+        else mode = LFO;
     }
+    if (mode != ENV) running = true;
 }
 
 // if not for ratio, its for shape
 uint16_t Module::get_pot_cv_val(bool for_rat) {
-    uint8_t pot_idx, cv_idx;
     if (for_rat) {
-        pot_idx = mux_assignments[R_PT_IDX];
-        cv_idx = mux_assignments[R_CV_IDX];
-    } else {
-        pot_idx = mux_assignments[S_PT_IDX];
-        cv_idx = mux_assignments[S_CV_IDX];
-    }
-    int16_t pot_val = mux.read(pot_idx);
-    int16_t cv_val = mux.read(cv_idx) - 511;
-    if (for_rat) {
-        rat_read.update(CLIP(1023 - pot_val + cv_val, 0, 1023));
+        raw_ratio_pot = mux.read(mux_assignments[R_PT_IDX]);
+        raw_ratio_cv = mux.read(mux_assignments[R_CV_IDX]);
+        rat_read.update(CLIP(MAX_X - raw_ratio_pot + raw_ratio_cv - HALF_X, 0, MAX_X));
         return rat_read.getValue();
     } else {
-        shp_read.update(CLIP(1023 - pot_val + cv_val, 0, 1023));
+        raw_shape_pot = mux.read(mux_assignments[S_PT_IDX]);
+        raw_shape_cv = mux.read(mux_assignments[S_CV_IDX]);
+        shp_read.update(CLIP(MAX_X - raw_shape_pot + raw_shape_cv - HALF_X, 0, MAX_X));
         return shp_read.getValue();
     }
 }
 
 int8_t Module::get_mod_idx_offset() {
     algo_read.update(mux.read(mux_assignments[M_CV_IDX]));
-    uint16_t raw_val = algo_read.getValue();
-    // if (is_A) Serial.println(raw_val >> 7);
-    return static_cast<int8_t>(raw_val >> 7);
-
+    raw_mod = algo_read.getValue();
+    return static_cast<int8_t>(raw_mod >> 7);
 }
 
 
+// from the mux wiring, different for the two sides
 uint16_t A_mux_assignments[] = {R_CV_A, R_POT_A, S_CV_A, S_POT_A, M_CV_A, SW_1_A, SW_2_A, EXP_CV_A};
 uint16_t B_mux_assignments[] = {R_CV_B, R_POT_B, S_CV_B, S_POT_B, M_CV_B, SW_1_B, SW_2_B, EXP_CV_B};
 
@@ -98,7 +78,7 @@ void Module::read_inputs_frequent(Module& other) {
 
     shape = get_pot_cv_val(false);
 
-    pha = get_phasor(other);
+    pha = get_phasor(other);  // need to pass other in case we're in follow mode
 
     mod_idx = get_mod_idx_offset();
 }
@@ -147,8 +127,18 @@ void Module::reset() {
     }
 }
 
-void Module::print_mode() {
+void Module::print_info(bool verbose) {
+    Serial.println((is_A)? "A" : "B");
+
+    Serial.print("mode: ");
     if (mode == ENV) Serial.println("ENV");
     else if (mode == VCO) Serial.println("VCO");
     else Serial.println("LFO");
+
+    Serial.print("phasor: ");
+    Serial.println(pha);
+
+    if (verbose) {
+        Serial.print("mod val");
+    }
 }

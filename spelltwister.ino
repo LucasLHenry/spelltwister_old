@@ -84,7 +84,7 @@ void setup() {
 
 void loop() {
     follow_btn.tick();
-    // get new values from pots and CV
+    
     A.read_inputs_frequent(B);
     B.read_inputs_frequent(A);
 
@@ -120,6 +120,7 @@ void TCC0_Handler() {
 
         if (A.prev_eos != A.end_of_cycle) digitalWriteDirect(TRIG_OUT_A, !A.end_of_cycle);
         if (B.prev_eos != B.end_of_cycle) digitalWriteDirect(TRIG_OUT_B, !B.end_of_cycle);
+
         isr_counter++;
 
         TCC0->INTFLAG.bit.CNT = 1;
@@ -128,26 +129,26 @@ void TCC0_Handler() {
 
 #define RECT(x) (((x) > 0)? (x) : -(x))
 void write_signal_indicator_leds(Adafruit_NeoPixel_ZeroDMA& leds, Module& A, Module& B, Modulator& modulator) {
-    // if (A.mode == ENV) {
-    //     leds.setPixelColor(PRI_A_LED, (A.val - HALF_Y) >> 8, 0, 0);
-    //     leds.setPixelColor(SEC_A_LED, (modulator.a_val - HALF_Y) >> 8, 0, 0);
-    // } else {
-    //     leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
-    //     leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0); 
-    // }
-    leds.setPixelColor(PRI_A_LED, RECT(static_cast<int32_t>(A.val - HALF_Y)) >> 8, 0, 0);
-    leds.setPixelColor(SEC_A_LED, RECT(static_cast<int32_t>(modulator.a_val - HALF_Y)) >> 8, 0, 0);
+    if (A.mode == ENV) {
+        leds.setPixelColor(PRI_A_LED, (A.val - HALF_Y) >> 7, 0, 0);
+        leds.setPixelColor(SEC_A_LED, (modulator.a_val - HALF_Y) >> 7, 0, 0);
+    } else {
+        leds.setPixelColor(PRI_A_LED, A.val >> 8, 0, 0);
+        leds.setPixelColor(SEC_A_LED, modulator.a_val >> 8, 0, 0); 
+    }
+    // leds.setPixelColor(PRI_A_LED, RECT(static_cast<int32_t>(A.val - HALF_Y)) >> 8, 0, 0);
+    // leds.setPixelColor(SEC_A_LED, RECT(static_cast<int32_t>(modulator.a_val - HALF_Y)) >> 8, 0, 0);
 
-    leds.setPixelColor(PRI_B_LED, 0, 0, RECT(static_cast<int32_t>(B.val - HALF_Y)) >> 8);
-    leds.setPixelColor(SEC_B_LED, 0, 0, RECT(static_cast<int32_t>(modulator.b_val - HALF_Y)) >> 8);
+    // leds.setPixelColor(PRI_B_LED, 0, 0, RECT(static_cast<int32_t>(B.val - HALF_Y)) >> 8);
+    // leds.setPixelColor(SEC_B_LED, 0, 0, RECT(static_cast<int32_t>(modulator.b_val - HALF_Y)) >> 8);
 
-    // if (B.mode == ENV) {
-    //     leds.setPixelColor(PRI_B_LED, 0, 0, RECT(static_cast<int32-t>(B.val - HALF_Y)) >> 8);
-    //     leds.setPixelColor(SEC_B_LED, 0, 0, RECT(static_cast<int32-t>(modulator.b_val - HALF_Y)) >> 8);
-    // } else {
-    //     leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
-    //     leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
-    // }
+    if (B.mode == ENV) {
+        leds.setPixelColor(PRI_B_LED, 0, 0, (B.val - HALF_Y) >> 7);
+        leds.setPixelColor(SEC_B_LED, 0, 0, (modulator.b_val - HALF_Y) >> 7);
+    } else {
+        leds.setPixelColor(PRI_B_LED, 0, 0, B.val >> 8);
+        leds.setPixelColor(SEC_B_LED, 0, 0, modulator.b_val >> 8);
+    }
 
     leds.setPixelColor(TRIG_A_LED, (A.eos_led)? RED : BLACK);
     leds.setPixelColor(TRIG_B_LED, (B.eos_led)? BLUE : BLACK);

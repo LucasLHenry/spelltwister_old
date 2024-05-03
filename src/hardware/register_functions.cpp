@@ -26,7 +26,7 @@ void setup_timers() {
     while (TCC0->SYNCBUSY.bit.WAVE);                // Wait for synchronization
 
     // Set the period (the number to count to (TOP) before resetting timer)
-    TCC0->PER.reg = 1023;
+    TCC0->PER.reg = 1088;  //  48 MHz / 1088 = 44.12 kHz
     while (TCC0->SYNCBUSY.bit.PER);
 
     // Set PWM signal to output 50% duty cycle
